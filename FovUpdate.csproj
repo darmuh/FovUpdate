@@ -1,0 +1,83 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <Nullable>enable</Nullable>
+	  <LangVersion>preview</LangVersion>
+	  <AssemblyVersion>PluginInfo.PLUGIN_VERSION</AssemblyVersion>
+	  <FileVersion>PluginInfo.PLUGIN_VERSION</FileVersion>
+	  <PackageReadmeFile>README.md</PackageReadmeFile>
+	  <PackageIcon>icon.png</PackageIcon>
+	  <BaseOutputPath>C:\Users\user\source\repos\FovUpdate\_RELEASE</BaseOutputPath>
+	  <PlatformTarget>x86</PlatformTarget>
+	  <PackageOutputPath>C:\Users\user\source\repos\FovUpdate\_RELEASE</PackageOutputPath>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <IsPublishable>False</IsPublishable>
+    <Deterministic>False</Deterministic>
+    <GenerateAssemblyInfo>True</GenerateAssemblyInfo>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <IsPublishable>False</IsPublishable>
+    <Deterministic>False</Deterministic>
+    <GenerateAssemblyInfo>True</GenerateAssemblyInfo>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="_RELEASE\Release\**" />
+    <EmbeddedResource Remove="_RELEASE\Release\**" />
+    <None Remove="_RELEASE\Release\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="_RELEASE\CHANGELOG.md" />
+    <None Include="_RELEASE\icon.png" />
+    <None Include="_RELEASE\LICENSE.MD" />
+    <None Include="_RELEASE\manifest.json" />
+    <None Include="_RELEASE\README.md" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="BepInEx.AssemblyPublicizer.MSBuild" Version="0.4.3">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="0Harmony">
+      <HintPath>..\..\..\AppData\Roaming\com.kesomannen.gale\repo\profiles\Default\BepInEx\core\0Harmony.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Assembly-CSharp" Publicize="true">
+      <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\REPO\REPO_Data\Managed\Assembly-CSharp.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="BepInEx">
+      <HintPath>..\..\..\AppData\Roaming\com.kesomannen.gale\repo\profiles\Default\BepInEx\core\BepInEx.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine">
+      <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\REPO\REPO_Data\Managed\UnityEngine.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine.CoreModule">
+      <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\REPO\REPO_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="_RELEASE\icon.png">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+    <None Update="_RELEASE\README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
+
+</Project>
