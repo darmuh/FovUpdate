@@ -12,6 +12,8 @@ This is a client sided mod and only the person who is adjusting their fov will n
 ### Example Screenshots:
 
 
+</details>
+
 
 ### Last update to this page:
 March 4th, 2025 (version 0.1.0)  
