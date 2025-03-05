@@ -1,6 +1,6 @@
 {
   "name": "FovUpdate",
-  "version_number": "0.1.0",
+  "version_number": "0.2.0",
   "website_url": "https://github.com/darmuh/FovUpdate",
   "description": "Allows you to update the game's FOV to your desired setting.",
   "dependencies": [

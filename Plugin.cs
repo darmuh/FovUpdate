@@ -14,7 +14,7 @@ namespace FovUpdate
         {
             public const string PLUGIN_GUID = "com.github.darmuh.FovUpdate";
             public const string PLUGIN_NAME = "FovUpdate";
-            public const string PLUGIN_VERSION = "0.1.0";
+            public const string PLUGIN_VERSION = "0.2.0";
         }
 
         internal static ManualLogSource Log;

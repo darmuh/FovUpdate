@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
     <Nullable>enable</Nullable>
-	  <LangVersion>preview</LangVersion>
+	  <LangVersion>latest</LangVersion>
 	  <AssemblyVersion>PluginInfo.PLUGIN_VERSION</AssemblyVersion>
 	  <FileVersion>PluginInfo.PLUGIN_VERSION</FileVersion>
 	  <PackageReadmeFile>README.md</PackageReadmeFile>
@@ -11,18 +11,30 @@
 	  <BaseOutputPath>C:\Users\user\source\repos\FovUpdate\_RELEASE</BaseOutputPath>
 	  <PlatformTarget>x86</PlatformTarget>
 	  <PackageOutputPath>C:\Users\user\source\repos\FovUpdate\_RELEASE</PackageOutputPath>
+	  <NuGetAuditMode>all</NuGetAuditMode>
+	  <NuGetAudit>False</NuGetAudit>
+	  <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+	  <NoStdLib>true</NoStdLib>
+  </PropertyGroup>
+
+  <PropertyGroup>
+	<DebugSymbols>true</DebugSymbols>
+	<DebugType>embedded</DebugType>
+	<PathMap>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)'))=./</PathMap>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <IsPublishable>False</IsPublishable>
     <Deterministic>False</Deterministic>
-    <GenerateAssemblyInfo>True</GenerateAssemblyInfo>
+    <GenerateAssemblyInfo>False</GenerateAssemblyInfo>
+    <CheckForOverflowUnderflow>True</CheckForOverflowUnderflow>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <IsPublishable>False</IsPublishable>
     <Deterministic>False</Deterministic>
-    <GenerateAssemblyInfo>True</GenerateAssemblyInfo>
+    <GenerateAssemblyInfo>False</GenerateAssemblyInfo>
+    <CheckForOverflowUnderflow>True</CheckForOverflowUnderflow>
   </PropertyGroup>
 
   <ItemGroup>
@@ -48,7 +60,7 @@
 
   <ItemGroup>
     <Reference Include="0Harmony">
-      <HintPath>..\..\..\AppData\Roaming\com.kesomannen.gale\repo\profiles\Default\BepInEx\core\0Harmony.dll</HintPath>
+      <HintPath>D:\games\modding\BepInEx-BepInExPack-5.4.2100\BepInExPack\BepInEx\core\0Harmony.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Assembly-CSharp" Publicize="true">
@@ -57,6 +69,13 @@
     </Reference>
     <Reference Include="BepInEx">
       <HintPath>..\..\..\AppData\Roaming\com.kesomannen.gale\repo\profiles\Default\BepInEx\core\BepInEx.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="BepInEx.Harmony">
+      <HintPath>..\..\..\AppData\Roaming\com.kesomannen.gale\repo\profiles\Default\BepInEx\core\BepInEx.Harmony.dll</HintPath>
+    </Reference>
+    <Reference Include="HarmonyXInterop">
+      <HintPath>D:\games\modding\BepInEx-BepInExPack-5.4.2100\BepInExPack\BepInEx\core\HarmonyXInterop.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine">
