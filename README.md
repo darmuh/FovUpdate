@@ -7,10 +7,12 @@ This is a client sided mod and only the person who is adjusting their fov will n
 - For basic instructions on how to use this mod, please follow the wiki article [here](https://thunderstore.io/c/repo/p/darmuh/FovUpdate/wiki/3169-how-do-i-change-the-fov/)
 - Set both your base-game field of view and your "crouched" / "tumble" field of view via the config.
 - While in-game, you can also use the following chat commands:
-	- ``\fov <number>`` input any number after ''\fov'' to immediately update your fov (and the config item)
-	- ``\cfov <number>`` input any number after ''\cfov'' to immediately update your crouch fov (and the config item)
+	- ``\fov <number>`` input any number after ``\fov`` to immediately update your fov (and the config item)
+	- ``\cfov <number>`` input any number after ``\cfov`` to immediately update your crouch fov (and the config item)
+	- ``\sfov <number>`` input any number after ``\sfov`` to immediately update your sprinting fov modifier (and the config item)
 	- FYI, everyone in the lobby **will** hear your chat commands
 - Tested briefly in multiplayer, please report any issues to the github for this mod.  
+
 
 ### Example Screenshots:
 <details>
@@ -71,5 +73,5 @@ This is a client sided mod and only the person who is adjusting their fov will n
 
 
 ### Last update to this page:
-March 5th, 2025 (version 0.2.0)  
+March 7th, 2025 (version 0.2.1)  
 *Changelog may have more up-to-date information than this page at times.*
