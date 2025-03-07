@@ -9,15 +9,15 @@ namespace FovUpdate
 
     public class Plugin : BaseUnityPlugin
     {
-        public static Plugin instance;
+        public static Plugin instance = null!;
         public static class PluginInfo
         {
             public const string PLUGIN_GUID = "com.github.darmuh.FovUpdate";
             public const string PLUGIN_NAME = "FovUpdate";
-            public const string PLUGIN_VERSION = "0.2.0";
+            public const string PLUGIN_VERSION = "0.2.1";
         }
 
-        internal static ManualLogSource Log;
+        internal static ManualLogSource Log = null!;
 
         private void Awake()
         {

@@ -12,7 +12,7 @@ namespace FovUpdate
     public class CameraPatchThings
     {
         public static List<Camera> playerCams = [];
-        public static void Postfix(CameraZoom __instance)
+        public static void Prefix(CameraZoom __instance)
         {
             if (!ShouldChangeFov())
                 return;
@@ -29,17 +29,21 @@ namespace FovUpdate
             __instance.zoomNew = FovConfig.UserDefinedFov.Value;
             __instance.zoomCurrent = FovConfig.UserDefinedFov.Value;
             __instance.playerZoomDefault = FovConfig.UserDefinedFov.Value;
+            __instance.SprintZoom = FovConfig.UserSprintFov.Value;
         }
 
-        private static bool ShouldChangeFov()
+        internal static bool ShouldChangeFov()
         {
             if (SemiFunc.IsMainMenu())
                 return false;
 
-            if (SemiFunc.RunIsLobbyMenu())
+            if (GameDirector.instance.PlayerList.Count <= 0)
                 return false;
 
-            if (SemiFunc.RunIsLobby())
+            if (CameraNoPlayerTarget.instance == null)
+                return true;
+
+            if (CameraNoPlayerTarget.instance.enabled)
                 return false;
 
             return true;
@@ -52,6 +56,9 @@ namespace FovUpdate
     {
         public static void Postfix(PlayerAvatar __instance)
         {
+            if (!CameraPatchThings.ShouldChangeFov())
+                return;
+
             if(__instance.localCamera.fieldOfView == FovConfig.UserDefinedFov.Value)
             {
                 Plugin.Spam("Fov already set to correct value");
@@ -59,7 +66,14 @@ namespace FovUpdate
             }
 
             __instance.StartCoroutine(ChatCommandHandler.ForceFovZoomCurve(FovConfig.UserDefinedFov.Value, FovConfig.UserDefinedFov, __instance.gameObject));
-            Plugin.Log.LogMessage($"Fov set to number [ {FovConfig.UserDefinedFov.Value} ]");
+
+            Plugin.Log.LogMessage($"@SpawnPatch: Fov set to number [ {FovConfig.UserDefinedFov.Value} ]");
+
+            if (CameraZoom.Instance == null)
+                return;
+
+            CameraZoom.Instance.SprintZoom = FovConfig.UserSprintFov.Value;
+            Plugin.Log.LogMessage($"@SpawnPatch: SprintFov set to number [ {FovConfig.UserSprintFov.Value} ]");
         }
     }
 
@@ -128,8 +142,41 @@ namespace FovUpdate
                 __instance.AddLetterToChat(" " + HandleFovChange(__instance.chatMessage));
             else if (__instance.chatMessage.StartsWith("/cfov"))
                 __instance.AddLetterToChat(" " + HandleCrouchFovChange(__instance.chatMessage));
+            else if (__instance.chatMessage.StartsWith("/sfov"))
+                __instance.AddLetterToChat(" " + HandleSprintFovChange(__instance.chatMessage));
 
             return true;
+        }
+
+        internal static string HandleSprintFovChange(string message)
+        {
+            string[] args = message.Split(' ');
+
+            if (args.Length == 1)
+            {
+                Plugin.Log.LogMessage($"Invalid sprint fov message format given - [ {message} ]");
+                return $"No number specified for /sfov!";
+            }
+            else
+            {
+                string fovNumString = args[1];
+                if (float.TryParse(fovNumString, out float fov))
+                {
+                    if (fov < 0f || fov > 100f)
+                        return $"Unable to set sprint fov to {fov} (out of range)";
+
+                    CameraZoom.Instance.SprintZoom = fov;
+                    FovConfig.UserCrouchFov.Value = fov;
+
+                    Plugin.Log.LogMessage($"SprintFov set to number [ {fov} ]");
+                    return $"Sprint fov set to {fov}";
+                }
+                else
+                {
+                    Plugin.Log.LogMessage($"Unable to parse value from {fovNumString}!");
+                    return $"Unable to parse value from {fovNumString}!";
+                }
+            }
         }
 
         internal static string HandleCrouchFovChange(string message)

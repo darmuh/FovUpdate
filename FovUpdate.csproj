@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
+	<GenerateAssemblyInfo>False</GenerateAssemblyInfo>
     <Nullable>enable</Nullable>
 	  <LangVersion>latest</LangVersion>
 	  <AssemblyVersion>PluginInfo.PLUGIN_VERSION</AssemblyVersion>
@@ -44,11 +45,29 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Remove="Properties\Resources.Designer.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Remove="Properties\Resources.resx" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="README.md" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="README.md">
+      <PackagePath>\</PackagePath>
+      <Pack>True</Pack>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <None Include="_RELEASE\CHANGELOG.md" />
     <None Include="_RELEASE\icon.png" />
     <None Include="_RELEASE\LICENSE.MD" />
     <None Include="_RELEASE\manifest.json" />
-    <None Include="_RELEASE\README.md" />
   </ItemGroup>
 
   <ItemGroup>
@@ -93,10 +112,13 @@
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
     </None>
-    <None Update="_RELEASE\README.md">
-      <Pack>True</Pack>
-      <PackagePath>\</PackagePath>
-    </None>
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Properties\" />
+  </ItemGroup>
+
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="xcopy /y $(ProjectDir)README.md  $(ProjectDir)\_RELEASE\&#xD;&#xA;xcopy /y $(ProjectDir)\_RELEASE\Release\netstandard2.1\FovUpdate.dll $(ProjectDir)\_RELEASE\ " />
+  </Target>
 </Project>
