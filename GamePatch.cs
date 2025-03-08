@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using BepInEx.Configuration;
@@ -50,7 +51,49 @@ namespace FovUpdate
         }
     }
 
-    //Spawn //PlayerAvatar
+    //UpdateWindowMode
+    //original source - https://github.com/Oksamies/UltrawideOrLongFix/blob/main/Plugin.cs#L67-L113 
+    [HarmonyPatch(typeof(GraphicsManager), "Update")]
+    public class UltraWideSupport
+    {
+        public static float previousAspectRatio;
+        public static float currentAspectRatio;
+        public static readonly float defaultAspectRatio = 1.7777778f;
+        public static List<RectTransform> Rects = [];
+        public static void Postfix(GraphicsManager __instance)
+        {
+            if (!FovConfig.AspectRatioFix.Value)
+                return;
+
+            if (__instance.fullscreenCheckTimer > 0f)
+                return;
+
+            Rects.RemoveAll(r => r == null);
+            bool newRect = false;
+
+            if(Rects.Count == 0)
+            {
+                Rects = [.. RenderTextureMain.instance.gameObject.GetComponentsInChildren<RectTransform>()];
+                newRect = true;
+            }
+
+            currentAspectRatio = (float)Screen.width / (float)Screen.height;
+
+            if (previousAspectRatio == currentAspectRatio && !newRect)
+                return;
+
+            if (currentAspectRatio > defaultAspectRatio)
+                Rects.Do(r => r.sizeDelta = new Vector2(428 * currentAspectRatio, 428));
+
+            else
+                Rects.Do(r => r.sizeDelta = new Vector2(750, 750 / currentAspectRatio));
+
+            previousAspectRatio = currentAspectRatio;
+
+            Plugin.Spam("Updating Aspect Ratio for ultrawide support!");
+        }
+    }
+
     [HarmonyPatch(typeof(PlayerAvatar), "Spawn")]
     public class SpawnPlayerFov
     {
@@ -166,7 +209,7 @@ namespace FovUpdate
                         return $"Unable to set sprint fov to {fov} (out of range)";
 
                     CameraZoom.Instance.SprintZoom = fov;
-                    FovConfig.UserCrouchFov.Value = fov;
+                    FovConfig.UserSprintFov.Value = fov;
 
                     Plugin.Log.LogMessage($"SprintFov set to number [ {fov} ]");
                     return $"Sprint fov set to {fov}";

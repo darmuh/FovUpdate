@@ -11,7 +11,9 @@ This is a client sided mod and only the person who is adjusting their fov will n
 	- ``\cfov <number>`` input any number after ``\cfov`` to immediately update your crouch fov (and the config item)
 	- ``\sfov <number>`` input any number after ``\sfov`` to immediately update your sprinting fov modifier (and the config item)
 	- FYI, everyone in the lobby **will** hear your chat commands
-- Tested briefly in multiplayer, please report any issues to the github for this mod.  
+- Tested briefly in multiplayer, please report any issues to the github for this mod.
+- As of 0.2.2, now provides ``AspectRatioFix`` config item for those with Ultrawide or Ultralong monitors.
+	- This fix is originally from [Oksamies' UltrawideOrLongFix](https://thunderstore.io/c/repo/p/Oksamies/UltrawideOrLongFix/) and has been slightly modified.
 
 
 ### Example Screenshots:
