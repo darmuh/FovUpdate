@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
  
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## [0.2.4]
+ - Added aspect ratio fix when ``AspectRatioFix`` is enabled and the resolution is not standard.
+	- This will update the aspect ratio of the camera to your current resolution.
+ - Minor updates to camera list handling
+	- moved list to plugin class and added UpdateCams method
+
+## [0.2.3]
+ - Added config change event support now that REPOConfig is in a good spot and offers config changing in-game.
+ - Added comments to ultrawide support patch to explain logic of code
+
 ## [0.2.2]
  - Fixed ``/sfov`` command updating crouchfov config item instead of sprintfov config item
  - Added ``AspectRatioFix`` config item to support ultra-wide and other non-conventional monitors.

@@ -2,6 +2,9 @@
 using BepInEx;
 using HarmonyLib;
 using System.Reflection;
+using BepInEx.Configuration;
+using System.Collections.Generic;
+using UnityEngine;
 
 namespace FovUpdate
 {
@@ -14,21 +17,72 @@ namespace FovUpdate
         {
             public const string PLUGIN_GUID = "com.github.darmuh.FovUpdate";
             public const string PLUGIN_NAME = "FovUpdate";
-            public const string PLUGIN_VERSION = "0.2.2";
+            public const string PLUGIN_VERSION = "0.2.4";
         }
 
         internal static ManualLogSource Log = null!;
+        public static List<Camera> playerCams = [];
 
         private void Awake()
         {
             instance = this;
             Log = base.Logger;
             Log.LogInfo($"{PluginInfo.PLUGIN_NAME} is loading with version {PluginInfo.PLUGIN_VERSION}!");
-
-            //Config.ConfigReloaded += OnConfigReloaded;
             FovConfig.Init();
+            instance.Config.SettingChanged += OnSettingChanged;
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly());
             Log.LogInfo($"{PluginInfo.PLUGIN_NAME} load complete!");
+        }
+
+        private void OnSettingChanged(object sender, SettingChangedEventArgs settingChangedArg)
+        {
+            Spam("CONFIG SETTING CHANGE EVENT");
+            if (settingChangedArg.ChangedSetting == null || CameraZoom.Instance == null)
+                return;
+
+            if (settingChangedArg.ChangedSetting == FovConfig.DeveloperLogging || settingChangedArg.ChangedSetting == FovConfig.AspectRatioFix)
+                Log.LogDebug($"{settingChangedArg.ChangedSetting.Definition.Key} is enabled [ {(bool)settingChangedArg.ChangedSetting.BoxedValue} ]");
+
+            if (settingChangedArg.ChangedSetting == FovConfig.UserSprintFov)
+            {
+                CameraZoom.Instance.SprintZoom = (float)settingChangedArg.ChangedSetting.BoxedValue;
+                Spam($"SprintFov updated to {(float)settingChangedArg.ChangedSetting.BoxedValue}");
+            }
+                
+
+            if (settingChangedArg.ChangedSetting == FovConfig.UserDefinedFov)
+            {
+                if(!CameraZoom.Instance.OverrideActive && CameraNoPlayerTarget.instance == null)
+                    PlayerAvatar.instance.StartCoroutine(ChatCommandHandler.ForceFovZoomCurve((float)settingChangedArg.ChangedSetting.BoxedValue, PlayerAvatar.instance.gameObject));
+                else
+                {
+                    CameraZoom.Instance.playerZoomDefault = FovConfig.UserDefinedFov.Value;
+                }
+                Spam($"Fov updated to {(float)settingChangedArg.ChangedSetting.BoxedValue}");
+            }
+
+            if (settingChangedArg.ChangedSetting == FovConfig.UserCrouchFov)
+            {
+                if (PlayerAvatar.instance == null)
+                    return;
+
+                if (PlayerAvatar.instance.tumble == null)
+                    return;
+
+                if(CameraZoom.Instance.OverrideActive && PlayerAvatar.instance.tumble.isTumbling)
+                    PlayerAvatar.instance.StartCoroutine(ChatCommandHandler.ForceFovZoomCurve((float)settingChangedArg.ChangedSetting.BoxedValue, PlayerAvatar.instance.tumble.gameObject, false));
+
+                Spam($"CrouchFov updated to {(float)settingChangedArg.ChangedSetting.BoxedValue}");
+            }
+        }
+
+        internal static void UpdateCams()
+        {
+            if (CameraZoom.Instance == null)
+                return;
+
+            playerCams.RemoveAll(c => c == null);
+            CameraZoom.Instance.cams.DoIf(c => !playerCams.Contains(c), c => playerCams.Add(c));
         }
 
         internal static void Spam(string message)

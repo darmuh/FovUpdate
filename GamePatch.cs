@@ -1,31 +1,34 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
-using BepInEx.Configuration;
 using HarmonyLib;
 using UnityEngine;
+using static FovUpdate.Plugin;
 
 namespace FovUpdate
 {
     [HarmonyPatch(typeof(CameraZoom), "Awake")]
     public class CameraPatchThings
     {
-        public static List<Camera> playerCams = [];
+
         public static void Prefix(CameraZoom __instance)
         {
-            if (!ShouldChangeFov())
+            if (!AreWeInGame())
                 return;
 
             playerCams.RemoveAll(c => c == null);
             __instance.cams.Do(x =>
             {
                 playerCams.Add(x);
-                Plugin.Spam($"Original Fov of {x.name} is {x.fieldOfView}");
+                Spam($"Original Fov of {x.name} is {x.fieldOfView}");
                 x.fieldOfView = FovConfig.UserDefinedFov.Value;
-                Plugin.Spam($"Field of view for {x.name} set to {FovConfig.UserDefinedFov.Value}");
+                Spam($"Field of view for {x.name} set to {FovConfig.UserDefinedFov.Value}");
+                if(FovConfig.AspectRatioFix.Value)
+                    UltraWideSupport.StretchFix(x);
+                
             });
+
             __instance.zoomPrev = FovConfig.UserDefinedFov.Value;
             __instance.zoomNew = FovConfig.UserDefinedFov.Value;
             __instance.zoomCurrent = FovConfig.UserDefinedFov.Value;
@@ -33,18 +36,12 @@ namespace FovUpdate
             __instance.SprintZoom = FovConfig.UserSprintFov.Value;
         }
 
-        internal static bool ShouldChangeFov()
+        internal static bool AreWeInGame()
         {
-            if (SemiFunc.IsMainMenu())
+            if (SemiFunc.RunIsLobbyMenu())
                 return false;
 
-            if (GameDirector.instance.PlayerList.Count <= 0)
-                return false;
-
-            if (CameraNoPlayerTarget.instance == null)
-                return true;
-
-            if (CameraNoPlayerTarget.instance.enabled)
+            if (RunManager.instance.levelCurrent == RunManager.instance.levelMainMenu)
                 return false;
 
             return true;
@@ -56,21 +53,39 @@ namespace FovUpdate
     [HarmonyPatch(typeof(GraphicsManager), "Update")]
     public class UltraWideSupport
     {
+        //Added for UltraWide Fov Fixes
+        public enum ScreenStatus
+        {
+            Default,
+            Wide,
+            Tall
+        }
+
+        public static ScreenStatus ScreenIs = ScreenStatus.Default;
+        
         public static float previousAspectRatio;
         public static float currentAspectRatio;
         public static readonly float defaultAspectRatio = 1.7777778f;
         public static List<RectTransform> Rects = [];
         public static void Postfix(GraphicsManager __instance)
         {
+            //config item is disabled, skip patch
             if (!FovConfig.AspectRatioFix.Value)
                 return;
 
+            //no need to run code at this time
             if (__instance.fullscreenCheckTimer > 0f)
                 return;
 
+            //Remove null refs
             Rects.RemoveAll(r => r == null);
+
+            //by default, we are not getting Rects every time this code is run
             bool newRect = false;
 
+            //There are no cached RectTransforms at this time
+            //Get the Rects from RenderTextureMain/RenderTextureOverlay(child)
+            //set newRect to true, signifying we have gotten Rects this run
             if(Rects.Count == 0)
             {
                 Rects = [.. RenderTextureMain.instance.gameObject.GetComponentsInChildren<RectTransform>()];
@@ -79,18 +94,49 @@ namespace FovUpdate
 
             currentAspectRatio = (float)Screen.width / (float)Screen.height;
 
+            //Check if aspect ratio has changed or if our reference rects were updated
             if (previousAspectRatio == currentAspectRatio && !newRect)
                 return;
 
+            //Update all rects with the appropriate sizeDelta
+            //Also calculate fixed fov for playerCams
             if (currentAspectRatio > defaultAspectRatio)
+            {
                 Rects.Do(r => r.sizeDelta = new Vector2(428 * currentAspectRatio, 428));
-
-            else
+                ScreenIs = ScreenStatus.Wide;
+                Plugin.Spam("Updating Aspect Ratio for ultrawide support!");
+            }
+            else if(currentAspectRatio == defaultAspectRatio)
+            {
                 Rects.Do(r => r.sizeDelta = new Vector2(750, 750 / currentAspectRatio));
+                ScreenIs = ScreenStatus.Default;
+                Plugin.Spam("Updating Aspect Ratio to default!");
+            }
+            else
+            {
+                Rects.Do(r => r.sizeDelta = new Vector2(750, 750 / currentAspectRatio));
+                ScreenIs = ScreenStatus.Tall;
+                Plugin.Spam("Updating Aspect Ratio for ultratall support!");
+            }
 
+            UpdateCams();
+            //automated fov fix to make things feel less stretched
+            playerCams.Do(c => StretchFix(c));
+
+            //cache our aspectratio (for any changes)
             previousAspectRatio = currentAspectRatio;
+        }
 
-            Plugin.Spam("Updating Aspect Ratio for ultrawide support!");
+        public static void StretchFix(Camera cam)
+        {
+            if (!FovConfig.AspectRatioFix.Value || cam == null)
+                return;
+
+            currentAspectRatio = (float)Screen.width / (float)Screen.height;
+
+            //Set aspect ratio of camera to avoid stretched cam
+            cam.aspect = currentAspectRatio;
+            Plugin.Spam($"{cam.name} aspect ratio set to {cam.aspect}");
         }
     }
 
@@ -99,16 +145,28 @@ namespace FovUpdate
     {
         public static void Postfix(PlayerAvatar __instance)
         {
-            if (!CameraPatchThings.ShouldChangeFov())
+            if (!CameraPatchThings.AreWeInGame())
+            {
+                //fix fov in main menu
+                if (UltraWideSupport.ScreenIs != UltraWideSupport.ScreenStatus.Default)
+                {
+                    UpdateCams();
+                    playerCams.Do(x =>
+                    {
+                        UltraWideSupport.StretchFix(x);
+                    });
+                }
                 return;
+            }
+                
 
-            if(__instance.localCamera.fieldOfView == FovConfig.UserDefinedFov.Value)
+            if (__instance.localCamera.fieldOfView == FovConfig.UserDefinedFov.Value)
             {
                 Plugin.Spam("Fov already set to correct value");
                 return;
             }
 
-            __instance.StartCoroutine(ChatCommandHandler.ForceFovZoomCurve(FovConfig.UserDefinedFov.Value, FovConfig.UserDefinedFov, __instance.gameObject));
+            __instance.StartCoroutine(ChatCommandHandler.ForceFovZoomCurve(FovConfig.UserDefinedFov.Value, __instance.gameObject));
 
             Plugin.Log.LogMessage($"@SpawnPatch: Fov set to number [ {FovConfig.UserDefinedFov.Value} ]");
 
@@ -162,7 +220,6 @@ namespace FovUpdate
 
         internal static float OverrideZoomSpecial()
         {
-            //Plugin.Spam($"Tumble Fov set to {FovConfig.UserCrouchFov.Value}");
             return FovConfig.UserCrouchFov.Value;
         }
     }
@@ -171,7 +228,7 @@ namespace FovUpdate
     [HarmonyPatch(typeof(ChatManager), "MessageSend")]
     public class ChatCommandHandler
     {
-        private static string lastMsg = "";
+        private static string lastMsg = ":o";
         private static bool changingFov = false;
         public static bool Prefix(ChatManager __instance)
         {
@@ -247,9 +304,9 @@ namespace FovUpdate
                         return $"Unable to set crouch fov to {fov} (out of range)";
 
                     if (PlayerAvatar.instance.isTumbling)
-                        ChatManager.instance.StartCoroutine(ForceFovZoomCurve(fov, FovConfig.UserCrouchFov, PlayerAvatar.instance.tumble.gameObject, false));
-                    else
-                        FovConfig.UserCrouchFov.Value = fov;
+                        ChatManager.instance.StartCoroutine(ForceFovZoomCurve(fov, PlayerAvatar.instance.tumble.gameObject, false));
+
+                    FovConfig.UserCrouchFov.Value = fov;
 
                     Plugin.Log.LogMessage($"CrouchFov set to number [ {fov} ]");
                     return $"crouch fov set to {fov}";
@@ -289,10 +346,12 @@ namespace FovUpdate
                     if(PlayerAvatar.instance.isTumbling)
                     {
                         CameraZoom.Instance.playerZoomDefault = fov;
+                        FovConfig.UserDefinedFov.Value = fov;
                         return $"fov will be {fov} when you get up";
                     }
 
-                    ChatManager.instance.StartCoroutine(ForceFovZoomCurve(fov, FovConfig.UserDefinedFov, PlayerAvatar.instance.gameObject));
+                    ChatManager.instance.StartCoroutine(ForceFovZoomCurve(fov, PlayerAvatar.instance.gameObject));
+                    FovConfig.UserDefinedFov.Value = fov;
                     Plugin.Log.LogMessage($"Fov set to number [ {fov} ]");
                     return $"fov set to {fov}";
                 }
@@ -304,28 +363,30 @@ namespace FovUpdate
             }
         }
 
-        internal static IEnumerator ForceFovZoomCurve(float newFov, ConfigEntry<float> configEntry, GameObject obj = null!, bool updateDef = true)
+        internal static IEnumerator ForceFovZoomCurve(float newFov, GameObject obj = null!, bool updateDef = true)
         {
+            if (PlayerAvatar.instance == null)
+                yield break;
+
             if(changingFov)
                 yield break;
 
             if(obj == null)
                 obj = PlayerController.instance.playerAvatar.gameObject;
 
+            CameraZoom.Instance.zoomPrev = CameraZoom.Instance.zoomCurrent;
             CameraZoom.Instance.OverrideZoomSet(newFov, 2f, 1f, 1f, obj, 150);
             changingFov = true;
 
             while (Mathf.Abs(CameraZoom.Instance.zoomCurrent - newFov) > 0.25 && CameraZoom.Instance.OverrideZoomObject == obj)
             {
                 //Plugin.Spam($"Fov is {CameraZoom.Instance.zoomCurrent}");
-                yield return new WaitForEndOfFrame();
+                yield return null!;
             }
 
             if(updateDef)
                 CameraZoom.Instance.playerZoomDefault = newFov;
 
-            configEntry.Value = newFov;
-            Plugin.instance.Config.Save();
             changingFov = false;
 
             if (CameraZoom.Instance.OverrideZoomObject != obj)
