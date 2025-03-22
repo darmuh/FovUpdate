@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
  
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## [0.2.6]
+ - Slight adjustment to ``Resolution Multiplier`` patch to allow for setting back to default value of 1 when launching with a different value
+ - Latest version of REPOConfig also handles the values much better now. Allowing for precise resolution multiplier selections! (Thanks Nick)
+
+## [0.2.5]
+ - Added ``Resolution Multiplier`` config item to allow for upscaling/downscaling the game.
+	- Max downscale is a 0.25 multiplier whereas max upscale is a 4 times multiplier.
+	- This setting overrides the ``Pixelation`` graphics setting in base game when set to a value other than 1.
+	- NOTE: REPOConfig does not read these values all that well. You will want to edit this config item out of game if you want to use a value other than 1,2,3, or 4.
+
 ## [0.2.4]
  - Added aspect ratio fix when ``AspectRatioFix`` is enabled and the resolution is not standard.
 	- This will update the aspect ratio of the camera to your current resolution.

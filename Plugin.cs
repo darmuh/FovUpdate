@@ -17,7 +17,7 @@ namespace FovUpdate
         {
             public const string PLUGIN_GUID = "com.github.darmuh.FovUpdate";
             public const string PLUGIN_NAME = "FovUpdate";
-            public const string PLUGIN_VERSION = "0.2.4";
+            public const string PLUGIN_VERSION = "0.2.6";
         }
 
         internal static ManualLogSource Log = null!;
@@ -48,7 +48,9 @@ namespace FovUpdate
                 CameraZoom.Instance.SprintZoom = (float)settingChangedArg.ChangedSetting.BoxedValue;
                 Spam($"SprintFov updated to {(float)settingChangedArg.ChangedSetting.BoxedValue}");
             }
-                
+
+            if (settingChangedArg.ChangedSetting == FovConfig.ResMultiplier)
+                ResolutionOverride.SetResolutionFix();
 
             if (settingChangedArg.ChangedSetting == FovConfig.UserDefinedFov)
             {

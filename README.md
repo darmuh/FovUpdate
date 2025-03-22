@@ -1,6 +1,6 @@
-# FovUpdate
+# FovUpdate (And More)
 
-### This is a simple mod that allows you to customize the game's field of view from the default value of 70. Also provides support for UltraWide or UltraLong screens (if enabled)
+### This is a simple mod that allows you to update the game's FOV to your desired setting. Also provides support for upscaling/downscaling the game as well as support for UltraWide or UltraLong screens (if enabled)
 
 This is a client sided mod and only the person who is adjusting their fov will need it.  
 
@@ -16,6 +16,8 @@ This is a client sided mod and only the person who is adjusting their fov will n
 	- This fix is originally from [Oksamies' UltrawideOrLongFix](https://thunderstore.io/c/repo/p/Oksamies/UltrawideOrLongFix/) and has been slightly modified.
 	- As of 0.2.4, will ensure your camera updates to the correct aspect ratio (unstretched horizontally)
 - As of 0.2.3, config change event support has been added for any mod that allows for config changes in-game (REPOConfig)
+- As of 0.2.5, upscale or downscale your game with the ``Resolution Multiplier`` config item.
+	- NOTE: This config item overrides the ``Pixelation`` graphics setting when set to a value other than 1.
 
 
 ### Example Screenshots:
@@ -77,5 +79,5 @@ This is a client sided mod and only the person who is adjusting their fov will n
 
 
 ### Last update to this page:
-March 21st, 2025 (version 0.2.4)  
+March 22nd, 2025 (version 0.2.6)  
 *Changelog may have more up-to-date information than this page at times.*

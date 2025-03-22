@@ -48,6 +48,31 @@ namespace FovUpdate
         }
     }
 
+    //ResolutionOverride
+    [HarmonyPatch(typeof(GraphicsManager), "UpdateRenderSize")]
+    public class ResolutionOverride
+    {
+        internal static float lastScaleChange = 1f;
+        public static void SetResolutionFix()
+        {
+            //return if value is the same or set to default
+            if (FovConfig.ResMultiplier.Value == lastScaleChange)
+                return;
+
+            //resolution change, only if it does not match our cached value
+            RenderTextureMain.instance.textureWidthOriginal = (float)Screen.width * (float)FovConfig.ResMultiplier.Value;
+            RenderTextureMain.instance.textureHeightOriginal = (float)Screen.height * (float)FovConfig.ResMultiplier.Value;
+            lastScaleChange = FovConfig.ResMultiplier.Value;
+            Spam($"Resolution has been overriden with multiplier {FovConfig.ResMultiplier.Value}");
+        }
+
+        public static void Postfix()
+        {
+            Spam($"Overriding pixelation setting with resolution multiplier! {FovConfig.ResMultiplier.Value}");
+            SetResolutionFix();
+        }
+    }
+
     //UpdateWindowMode
     //original source - https://github.com/Oksamies/UltrawideOrLongFix/blob/main/Plugin.cs#L67-L113 
     [HarmonyPatch(typeof(GraphicsManager), "Update")]
@@ -104,19 +129,19 @@ namespace FovUpdate
             {
                 Rects.Do(r => r.sizeDelta = new Vector2(428 * currentAspectRatio, 428));
                 ScreenIs = ScreenStatus.Wide;
-                Plugin.Spam("Updating Aspect Ratio for ultrawide support!");
+                Spam("Updating Aspect Ratio for ultrawide support!");
             }
             else if(currentAspectRatio == defaultAspectRatio)
             {
                 Rects.Do(r => r.sizeDelta = new Vector2(750, 750 / currentAspectRatio));
                 ScreenIs = ScreenStatus.Default;
-                Plugin.Spam("Updating Aspect Ratio to default!");
+                Spam("Updating Aspect Ratio to default!");
             }
             else
             {
                 Rects.Do(r => r.sizeDelta = new Vector2(750, 750 / currentAspectRatio));
                 ScreenIs = ScreenStatus.Tall;
-                Plugin.Spam("Updating Aspect Ratio for ultratall support!");
+                Spam("Updating Aspect Ratio for ultratall support!");
             }
 
             UpdateCams();
@@ -136,7 +161,7 @@ namespace FovUpdate
 
             //Set aspect ratio of camera to avoid stretched cam
             cam.aspect = currentAspectRatio;
-            Plugin.Spam($"{cam.name} aspect ratio set to {cam.aspect}");
+            Spam($"{cam.name} aspect ratio set to {cam.aspect}");
         }
     }
 
