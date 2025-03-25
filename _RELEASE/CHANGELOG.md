@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
  
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## [0.2.7]
+ - Hopefully fixed ``Resolution Multiplier`` patch not applying on reload.
+	- Also added a portion of the patch to use the game's pixelation setting when returning to default value
+
 ## [0.2.6]
  - Slight adjustment to ``Resolution Multiplier`` patch to allow for setting back to default value of 1 when launching with a different value
  - Latest version of REPOConfig also handles the values much better now. Allowing for precise resolution multiplier selections! (Thanks Nick)

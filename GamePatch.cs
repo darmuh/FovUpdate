@@ -52,23 +52,42 @@ namespace FovUpdate
     [HarmonyPatch(typeof(GraphicsManager), "UpdateRenderSize")]
     public class ResolutionOverride
     {
-        internal static float lastScaleChange = 1f;
+        internal static float lastMultiplier = 1f;
+        internal static bool EarlyReturn = false; 
         public static void SetResolutionFix()
         {
-            //return if value is the same or set to default
-            if (FovConfig.ResMultiplier.Value == lastScaleChange)
+            //do not override resoltuion
+            if (FovConfig.ResMultiplier.Value == 1f && lastMultiplier == FovConfig.ResMultiplier.Value)
+            {
+                Spam("Pixelation setting remaining unchanged");
                 return;
+            }
+
+            //Use game's pixelation setting
+            if(FovConfig.ResMultiplier.Value == 1f)
+            {
+                Spam("Updating to base-game's pixelation setting");
+                lastMultiplier = FovConfig.ResMultiplier.Value;
+                EarlyReturn = true;
+                GraphicsManager.instance.UpdateRenderSize();
+                return;
+            }
 
             //resolution change, only if it does not match our cached value
             RenderTextureMain.instance.textureWidthOriginal = (float)Screen.width * (float)FovConfig.ResMultiplier.Value;
             RenderTextureMain.instance.textureHeightOriginal = (float)Screen.height * (float)FovConfig.ResMultiplier.Value;
-            lastScaleChange = FovConfig.ResMultiplier.Value;
+            lastMultiplier = FovConfig.ResMultiplier.Value;
             Spam($"Resolution has been overriden with multiplier {FovConfig.ResMultiplier.Value}");
         }
 
         public static void Postfix()
         {
-            Spam($"Overriding pixelation setting with resolution multiplier! {FovConfig.ResMultiplier.Value}");
+            if(EarlyReturn)
+            {
+                EarlyReturn = false;
+                return;
+            }
+
             SetResolutionFix();
         }
     }
