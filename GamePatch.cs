@@ -73,6 +73,15 @@ namespace FovUpdate
                 return;
             }
 
+            //github issue #5, Res Multiplier error
+            if ((float)Screen.width * (float)FovConfig.ResMultiplier.Value > 16384f || (float)Screen.height * (float)FovConfig.ResMultiplier.Value > 16834f)
+            {
+                WARNING($"Unable to apply Resolution Multiplier of {FovConfig.ResMultiplier.Value}!\nExpected Height ({(float)Screen.height * (float)FovConfig.ResMultiplier.Value > 16834}) or Width ({(float)Screen.width * (float)FovConfig.ResMultiplier.Value}) is larger than maxium Unity supported value of 16834");
+
+                FovConfig.ResMultiplier.Value = 16834f / Mathf.Max((float)Screen.height, (float)Screen.width);
+                Log.LogMessage($"Resolution Multiplier has been forced to {FovConfig.ResMultiplier.Value}. This is the maximum valid value for your hardware setup.");
+            }
+
             //resolution change, only if it does not match our cached value
             RenderTextureMain.instance.textureWidthOriginal = (float)Screen.width * (float)FovConfig.ResMultiplier.Value;
             RenderTextureMain.instance.textureHeightOriginal = (float)Screen.height * (float)FovConfig.ResMultiplier.Value;

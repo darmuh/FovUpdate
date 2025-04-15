@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
  
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## [0.2.8]
+ - Added fix for github issue #5, where the resolution multiplier would result in a resolution that is larger than unity's maximum supported texture size.
+	- The fix will now force you to a lower, valid resolution multiplier.
+	- This fix is untested since I don't have a monitor with a large enough resolution to experience the issue.
+
 ## [0.2.7]
  - Hopefully fixed ``Resolution Multiplier`` patch not applying on reload.
 	- Also added a portion of the patch to use the game's pixelation setting when returning to default value

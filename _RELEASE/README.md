@@ -18,6 +18,7 @@ This is a client sided mod and only the person who is adjusting their fov will n
 - As of 0.2.3, config change event support has been added for any mod that allows for config changes in-game (REPOConfig)
 - As of 0.2.5, upscale or downscale your game with the ``Resolution Multiplier`` config item.
 	- NOTE: This config item overrides the ``Pixelation`` graphics setting when set to a value other than 1.
+	- NOTE2: Unity has a maximum texture size of 16384. If either aspect of your screen's resolution mutliplied by the  multiplier is larger than this value, the config item will be forced to an acceptable value.
 
 
 ### Example Screenshots:
