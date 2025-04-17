@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using HarmonyLib;
@@ -53,7 +54,7 @@ namespace FovUpdate
     public class ResolutionOverride
     {
         internal static float lastMultiplier = 1f;
-        internal static bool EarlyReturn = false; 
+        internal static bool EarlyReturn = false;
         public static void SetResolutionFix()
         {
             //do not override resoltuion
@@ -73,20 +74,28 @@ namespace FovUpdate
                 return;
             }
 
-            //github issue #5, Res Multiplier error
-            if ((float)Screen.width * (float)FovConfig.ResMultiplier.Value > 16384f || (float)Screen.height * (float)FovConfig.ResMultiplier.Value > 16834f)
-            {
-                WARNING($"Unable to apply Resolution Multiplier of {FovConfig.ResMultiplier.Value}!\nExpected Height ({(float)Screen.height * (float)FovConfig.ResMultiplier.Value > 16834}) or Width ({(float)Screen.width * (float)FovConfig.ResMultiplier.Value}) is larger than maxium Unity supported value of 16834");
+            float desiredWidth = Screen.width * FovConfig.ResMultiplier.Value;
+            float desiredHeight = Screen.height * FovConfig.ResMultiplier.Value;
+            float maxTextureSize = SystemInfo.maxTextureSize;
 
-                FovConfig.ResMultiplier.Value = 16834f / Mathf.Max((float)Screen.height, (float)Screen.width);
-                Log.LogMessage($"Resolution Multiplier has been forced to {FovConfig.ResMultiplier.Value}. This is the maximum valid value for your hardware setup.");
+            //github issue #5, Res Multiplier error
+            if (desiredWidth > maxTextureSize || desiredHeight > maxTextureSize)
+            {
+                WARNING($"Unable to apply Resolution Multiplier of {FovConfig.ResMultiplier.Value}!\nExpected Height ({desiredHeight}) or Width ({desiredWidth}) is larger than maxium Unity supported value of (GPU limit) {maxTextureSize}");
+
+                FovConfig.ResMultiplier.Value = Mathf.Min(maxTextureSize / (float)Screen.width, maxTextureSize / (float)Screen.height);
+
+                desiredWidth = (float)Screen.width * FovConfig.ResMultiplier.Value;
+                desiredHeight = (float)Screen.height * FovConfig.ResMultiplier.Value;
+
+                Log.LogMessage($"Resolution multiplier clamped to {FovConfig.ResMultiplier.Value} (GPU limit: {maxTextureSize}) Expected Width: {desiredWidth} Expected Heigh: {desiredHeight}");
             }
 
-            //resolution change, only if it does not match our cached value
-            RenderTextureMain.instance.textureWidthOriginal = (float)Screen.width * (float)FovConfig.ResMultiplier.Value;
-            RenderTextureMain.instance.textureHeightOriginal = (float)Screen.height * (float)FovConfig.ResMultiplier.Value;
+            // Apply the resolution (ensure integer values)
+            RenderTextureMain.instance.textureWidthOriginal = Mathf.FloorToInt(desiredWidth);
+            RenderTextureMain.instance.textureHeightOriginal = Mathf.FloorToInt(desiredHeight);
             lastMultiplier = FovConfig.ResMultiplier.Value;
-            Spam($"Resolution has been overriden with multiplier {FovConfig.ResMultiplier.Value}");
+            Spam($"RenderTexture resolution set to: {desiredWidth}x{desiredHeight} via multiplier {FovConfig.ResMultiplier.Value}");
         }
 
         public static void Postfix()

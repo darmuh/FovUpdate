@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
  
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## [0.2.9]
+ - Adjusted github issue #5 fix to hopefully account for some minor math errors.
+	- Logs will now show what your resolution AND modifier have been forced to when exceeding the limit.
+	- I also switched from hardcoding 16834 to using SystemInfo.maxTextureSize
+
 ## [0.2.8]
  - Added fix for github issue #5, where the resolution multiplier would result in a resolution that is larger than unity's maximum supported texture size.
 	- The fix will now force you to a lower, valid resolution multiplier.
