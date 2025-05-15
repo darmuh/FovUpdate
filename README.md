@@ -85,4 +85,8 @@
 
 ### Last update to this page:
 May 15th, 2025 (version 0.2.10)  
+<<<<<<< HEAD
 *Changelog may have more up-to-date information than this page at times.*
+=======
+*Changelog may have more up-to-date information than this page at times.*
+>>>>>>> 2267084 (0.2.10 update, compiled for v0.1.2.23_beta)

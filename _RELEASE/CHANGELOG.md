@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
  
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## [0.2.10]
+ - Compiled for beta
+ - Added GetCappedSprintFov method to cap sprintfov values. 
+	- This method will update your sprint fov if it causes your fov to exceed 180 when sprinting.
+	- Reminder that sprint fov is an added on value on top of your regular fov. So having a regular fov of 100 and a sprint fov of 90 would have raised your fov to 190 once you hit the peak of your sprint. This cap will now automatically lower your sprint fov so that your peak fov will not be larger than 180.
+	- If anyone would like the hard cap raised from 180 please feel free to reach out via a github issue or the modding discord.
+ - Changed spawn patch to CameraAim Spawn
+
 ## [0.2.9]
  - Adjusted github issue #5 fix to hopefully account for some minor math errors.
 	- Logs will now show what your resolution AND modifier have been forced to when exceeding the limit.

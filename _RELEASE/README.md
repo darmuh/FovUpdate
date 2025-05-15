@@ -1,8 +1,12 @@
 # FovUpdate (And More)
 
-### This is a simple mod that allows you to update the game's FOV to your desired setting. Also provides support for upscaling/downscaling the game as well as support for UltraWide or UltraLong screens (if enabled)
+## 0.2.10 has been compiled for v0.1.2.23_beta!!
 
-This is a client sided mod and only the person who is adjusting their fov will need it.  
+### This is a simple mod that allows you to update the game's FOV to your desired setting. 
+
+### Also provides support for upscaling/downscaling the game as well as support for UltraWide or UltraLong screens (if enabled)
+
+**This is a client sided mod and only the person who is adjusting their fov will need it.**  
 
 - For basic instructions on how to use this mod, please follow the wiki article [here](https://thunderstore.io/c/repo/p/darmuh/FovUpdate/wiki/3169-how-do-i-change-the-fov/)
 - Set both your base-game field of view and your "crouched" / "tumble" field of view via the config.
@@ -80,5 +84,5 @@ This is a client sided mod and only the person who is adjusting their fov will n
 
 
 ### Last update to this page:
-March 22nd, 2025 (version 0.2.6)  
+May 15th, 2025 (version 0.2.10)  
 *Changelog may have more up-to-date information than this page at times.*

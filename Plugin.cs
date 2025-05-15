@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace FovUpdate
 {
-    [BepInPlugin("com.github.darmuh.FovUpdate", "FovUpdate", (PluginInfo.PLUGIN_VERSION))]
+    [BepInPlugin(PluginInfo.PLUGIN_GUID, PluginInfo.PLUGIN_NAME, PluginInfo.PLUGIN_VERSION)]
 
     public class Plugin : BaseUnityPlugin
     {
@@ -17,7 +17,7 @@ namespace FovUpdate
         {
             public const string PLUGIN_GUID = "com.github.darmuh.FovUpdate";
             public const string PLUGIN_NAME = "FovUpdate";
-            public const string PLUGIN_VERSION = "0.2.9";
+            public const string PLUGIN_VERSION = "0.2.10";
         }
 
         internal static ManualLogSource Log = null!;
@@ -32,6 +32,7 @@ namespace FovUpdate
             instance.Config.SettingChanged += OnSettingChanged;
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly());
             Log.LogInfo($"{PluginInfo.PLUGIN_NAME} load complete!");
+            Log.LogInfo($"This version of the mod has been compiled for v0.1.2.23_beta :)");
         }
 
         private void OnSettingChanged(object sender, SettingChangedEventArgs settingChangedArg)
@@ -45,8 +46,8 @@ namespace FovUpdate
 
             if (settingChangedArg.ChangedSetting == FovConfig.UserSprintFov)
             {
-                CameraZoom.Instance.SprintZoom = (float)settingChangedArg.ChangedSetting.BoxedValue;
-                Spam($"SprintFov updated to {(float)settingChangedArg.ChangedSetting.BoxedValue}");
+                CameraZoom.Instance.SprintZoom = FovConfig.GetCappedSprintFov();
+                Spam($"SprintFov updated to {CameraZoom.Instance.SprintZoom}");
             }
 
             if (settingChangedArg.ChangedSetting == FovConfig.ResMultiplier)
@@ -60,6 +61,7 @@ namespace FovUpdate
                 {
                     CameraZoom.Instance.playerZoomDefault = FovConfig.UserDefinedFov.Value;
                 }
+                CameraZoom.Instance.SprintZoom = FovConfig.GetCappedSprintFov();
                 Spam($"Fov updated to {(float)settingChangedArg.ChangedSetting.BoxedValue}");
             }
 
