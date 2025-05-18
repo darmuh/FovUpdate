@@ -17,7 +17,7 @@ namespace FovUpdate
         {
             public const string PLUGIN_GUID = "com.github.darmuh.FovUpdate";
             public const string PLUGIN_NAME = "FovUpdate";
-            public const string PLUGIN_VERSION = "0.2.10";
+            public const string PLUGIN_VERSION = "0.2.11";
         }
 
         internal static ManualLogSource Log = null!;
@@ -44,9 +44,9 @@ namespace FovUpdate
             if (settingChangedArg.ChangedSetting == FovConfig.DeveloperLogging || settingChangedArg.ChangedSetting == FovConfig.AspectRatioFix)
                 Log.LogDebug($"{settingChangedArg.ChangedSetting.Definition.Key} is enabled [ {(bool)settingChangedArg.ChangedSetting.BoxedValue} ]");
 
-            if (settingChangedArg.ChangedSetting == FovConfig.UserSprintFov)
+            if (settingChangedArg.ChangedSetting == FovConfig.UserSprintFov && !FovConfig.ChangingSprintFov)
             {
-                CameraZoom.Instance.SprintZoom = FovConfig.GetCappedSprintFov();
+                CameraZoom.Instance.SprintZoom = FovConfig.UpdateSprintConfigItem();
                 Spam($"SprintFov updated to {CameraZoom.Instance.SprintZoom}");
             }
 
@@ -61,7 +61,7 @@ namespace FovUpdate
                 {
                     CameraZoom.Instance.playerZoomDefault = FovConfig.UserDefinedFov.Value;
                 }
-                CameraZoom.Instance.SprintZoom = FovConfig.GetCappedSprintFov();
+                CameraZoom.Instance.SprintZoom = FovConfig.UpdateSprintConfigItem();
                 Spam($"Fov updated to {(float)settingChangedArg.ChangedSetting.BoxedValue}");
             }
 

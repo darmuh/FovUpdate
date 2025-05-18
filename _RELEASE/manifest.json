@@ -1,6 +1,6 @@
 {
   "name": "FovUpdate",
-  "version_number": "0.2.10",
+  "version_number": "0.2.11",
   "website_url": "https://github.com/darmuh/FovUpdate",
   "description": "Allows you to update the game's FOV to your desired setting. Also provides support for upscaling/downscaling the game as well as support for UltraWide or UltraLong screens (if enabled)",
   "dependencies": [

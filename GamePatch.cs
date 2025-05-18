@@ -199,6 +199,15 @@ namespace FovUpdate
         }
     }
 
+    [HarmonyPatch(typeof(PunManager), "UpdateSprintSpeedRightAway")]
+    public class SprintFovUpdate
+    {
+        public static void Postfix()
+        {
+            CameraZoom.Instance.SprintZoom = FovConfig.GetCappedSprintFov();
+        }
+    }
+
     [HarmonyPatch(typeof(CameraAim), "CameraAimSpawn")]
     public class SpawnPlayerFov
     {
@@ -221,7 +230,7 @@ namespace FovUpdate
 
             if (PlayerAvatar.instance.localCamera.fieldOfView == FovConfig.UserDefinedFov.Value)
             {
-                Spam("Fov already set to correct value");
+                Log.LogMessage("@SpawnPatch: Fov already set to correct value");
                 return;
             }
 
@@ -325,13 +334,14 @@ namespace FovUpdate
                         return $"Unable to set sprint fov to {fov} (out of range)";
 
                     FovConfig.UserSprintFov.Value = fov;
-                    CameraZoom.Instance.SprintZoom = FovConfig.GetCappedSprintFov();
+                    CameraZoom.Instance.SprintZoom = FovConfig.UpdateSprintConfigItem();
 
                     Log.LogMessage($"SprintFov set to number [ {CameraZoom.Instance.SprintZoom} ]");
-                    return $"Sprint fov set to {CameraZoom.Instance.SprintZoom}";
+                    return $"Sprint fov updated";
                 }
                 else
                 {
+                    
                     Log.LogMessage($"Unable to parse value from {fovNumString}!");
                     return $"Unable to parse value from {fovNumString}!";
                 }
@@ -406,14 +416,14 @@ namespace FovUpdate
                     {
                         CameraZoom.Instance.playerZoomDefault = fov;
                         FovConfig.UserDefinedFov.Value = fov;
-                        CameraZoom.Instance.SprintZoom = FovConfig.GetCappedSprintFov();
+                        CameraZoom.Instance.SprintZoom = FovConfig.UpdateSprintConfigItem();
                         return $"fov will be {fov} when you get up";
                     }
 
                     ChatManager.instance.StartCoroutine(ForceFovZoomCurve(fov, PlayerAvatar.instance.gameObject));
                     FovConfig.UserDefinedFov.Value = fov;
                     Log.LogMessage($"Fov set to number [ {fov} ]");
-                    CameraZoom.Instance.SprintZoom = FovConfig.GetCappedSprintFov();
+                    CameraZoom.Instance.SprintZoom = FovConfig.UpdateSprintConfigItem();
                     return $"fov set to {fov}";
                 }
                 else

@@ -1,6 +1,6 @@
 # FovUpdate (And More)
 
-## 0.2.10 has been compiled for v0.1.2.23_beta!!
+## 0.2.11 has been compiled for v0.1.2.31_beta!
 
 ### This is a simple mod that allows you to update the game's FOV to your desired setting. 
 
@@ -84,5 +84,4 @@
 
 
 ### Last update to this page:
-May 15th, 2025 (version 0.2.10)  
-*Changelog may have more up-to-date information than this page at times.*
+May 17th, 2025 (version 0.2.11)  

@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
  
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## [0.2.11]
+ - Found and added fix for issue reported in [issue #6](https://github.com/darmuh/FovUpdate/issues/6) where numerous speed upgrades would result in an unplayable Field of View while sprinting.
+	- This is a base-game issue that is more apparent when playing with a larger fov
+	- The current fix is that I recalculate your sprint fov modifier to account for the number of upgrades you have if the expected peak FOV will be larger than 180
+	- I have [reported this issue as a bug to the actual devs of the game](https://discord.com/channels/1330873443515760640/1373418458552860753) so that they can add a fix on their end some day. It would be a lot simpler/easier to fix on their end.
+	- Thanks ud119 on github for helping me identify the root cause of this issue
+ - Compiled for v0.1.2.31_beta version of the game
+
 ## [0.2.10]
  - Compiled for beta
  - Added GetCappedSprintFov method to cap sprintfov values. 
