@@ -1,8 +1,9 @@
-﻿using System.Collections;
+﻿using HarmonyLib;
+using System;
+using System.Collections;
 using System.Collections.Generic;
-using System.Reflection;
+using System.Linq;
 using System.Reflection.Emit;
-using HarmonyLib;
 using UnityEngine;
 using static FovUpdate.Plugin;
 
@@ -23,16 +24,16 @@ namespace FovUpdate
                 Spam($"Original Fov of {x.name} is {x.fieldOfView}");
                 x.fieldOfView = FovConfig.UserDefinedFov.Value;
                 Spam($"Field of view for {x.name} set to {FovConfig.UserDefinedFov.Value}");
-                if(FovConfig.AspectRatioFix.Value)
+                if (FovConfig.AspectRatioFix.Value)
                     UltraWideSupport.StretchFix(x);
-                
+
             });
 
             __instance.zoomPrev = FovConfig.UserDefinedFov.Value;
             __instance.zoomNew = FovConfig.UserDefinedFov.Value;
             __instance.zoomCurrent = FovConfig.UserDefinedFov.Value;
             __instance.playerZoomDefault = FovConfig.UserDefinedFov.Value;
-            __instance.SprintZoom = FovConfig.GetCappedSprintFov();
+            __instance.SprintZoom = FovConfig.UpdateSprintConfigItem();
         }
 
         internal static bool AreWeInGame()
@@ -63,7 +64,7 @@ namespace FovUpdate
             }
 
             //Use game's pixelation setting
-            if(FovConfig.ResMultiplier.Value == 1f)
+            if (FovConfig.ResMultiplier.Value == 1f)
             {
                 Spam("Updating to base-game's pixelation setting");
                 lastMultiplier = FovConfig.ResMultiplier.Value;
@@ -98,7 +99,7 @@ namespace FovUpdate
 
         public static void Postfix()
         {
-            if(EarlyReturn)
+            if (EarlyReturn)
             {
                 EarlyReturn = false;
                 return;
@@ -122,7 +123,7 @@ namespace FovUpdate
         }
 
         public static ScreenStatus ScreenIs = ScreenStatus.Default;
-        
+
         public static float previousAspectRatio;
         public static float currentAspectRatio;
         public static readonly float defaultAspectRatio = 1.7777778f;
@@ -146,7 +147,7 @@ namespace FovUpdate
             //There are no cached RectTransforms at this time
             //Get the Rects from RenderTextureMain/RenderTextureOverlay(child)
             //set newRect to true, signifying we have gotten Rects this run
-            if(Rects.Count == 0)
+            if (Rects.Count == 0)
             {
                 Rects = [.. RenderTextureMain.instance.gameObject.GetComponentsInChildren<RectTransform>()];
                 newRect = true;
@@ -165,7 +166,7 @@ namespace FovUpdate
                 ScreenIs = ScreenStatus.Wide;
                 Spam("Updating Aspect Ratio for ultrawide support!");
             }
-            else if(currentAspectRatio == defaultAspectRatio)
+            else if (currentAspectRatio == defaultAspectRatio)
             {
                 Rects.Do(r => r.sizeDelta = new Vector2(750, 750 / currentAspectRatio));
                 ScreenIs = ScreenStatus.Default;
@@ -199,15 +200,6 @@ namespace FovUpdate
         }
     }
 
-    [HarmonyPatch(typeof(PunManager), "UpdateSprintSpeedRightAway")]
-    public class SprintFovUpdate
-    {
-        public static void Postfix()
-        {
-            CameraZoom.Instance.SprintZoom = FovConfig.GetCappedSprintFov();
-        }
-    }
-
     [HarmonyPatch(typeof(CameraAim), "CameraAimSpawn")]
     public class SpawnPlayerFov
     {
@@ -226,7 +218,6 @@ namespace FovUpdate
                 }
                 return;
             }
-                
 
             if (PlayerAvatar.instance.localCamera.fieldOfView == FovConfig.UserDefinedFov.Value)
             {
@@ -241,8 +232,100 @@ namespace FovUpdate
             if (CameraZoom.Instance == null)
                 return;
 
-            CameraZoom.Instance.SprintZoom = FovConfig.GetCappedSprintFov();
+            CameraZoom.Instance.SprintZoom = FovConfig.UpdateSprintConfigItem();
             Log.LogMessage($"@SpawnPatch: SprintFov set to number [ {CameraZoom.Instance.SprintZoom} ]");
+        }
+    }
+
+    [HarmonyPatch(typeof(CameraZoom), "OverrideZoomSet")]
+    public class EffectsFix
+    {
+        public static void Prefix(ref float zoom)
+        {
+            //early return for:
+            //patch disabled via config
+            //ForceFovZoomCurve coroutine is running (changingFov bool)
+            //TumbleCheck returns true (player is crouching to crouchfov value)
+            if (ChatCommandHandler.changingFov || !FovConfig.EffectsFix.Value || TumbleCheck())
+                return;
+
+            //we get our fov scale by dividing the vanilla fov by our set value
+            //Then we adjust the zoom value of this method to be divided by our fov scale
+            float fovScale = 70f / FovConfig.UserDefinedFov.Value;
+            zoom /= fovScale;
+            
+            //if the max fov fix is enabled, clamp it
+            if(FovConfig.ClampFix.Value)
+                Mathf.Clamp(zoom, 1f, FovConfig.MaximumPossibleFov.Value);
+            
+            Spam($"zoom set to {zoom}");
+        }
+
+        private static bool TumbleCheck()
+        {
+            if (PlayerAvatar.instance == null || PlayerController.instance == null)
+                return false;
+
+            if (PlayerAvatar.instance.tumble == null)
+                return false;
+
+            //inputdisabletimer because enemies like upscream force you into a crouch and affect your zoom differently than the crouch fov
+            return PlayerAvatar.instance.tumble.isTumbling && PlayerController.instance.InputDisableTimer <= 0f;
+        }
+    }
+
+    [HarmonyPatch(typeof(SemiFunc), "OnScreen")]
+    public class AdjustOnScreenBool
+    {
+        public static void Prefix(ref float paddWidth, ref float paddHeight)
+        {
+            //early return if we are not in game or the fix is disabled
+            if (!CameraPatchThings.AreWeInGame() || !FovConfig.OnScreenFix.Value)
+                return;
+
+            //get fov scale by dividing our defined fov by the vanilla 70
+            //this is different than our other fovscale calculations because the padding needs to be smaller for higher fovs
+            float fovScale = FovConfig.UserDefinedFov.Value / 70f;
+
+            paddHeight /= fovScale;
+            paddWidth /= fovScale;
+        }
+    }
+
+    [HarmonyPatch(typeof(CameraZoom), "Update")]
+    [HarmonyPriority(Priority.Last)]
+    public class CameraZoomUpdateClamp
+    {
+        static int replacements = 0;
+
+        [HarmonyTranspiler]
+        private static IEnumerable<CodeInstruction> CameraZoom_Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            Plugin.Log.LogMessage("CameraZoomUpdateClamp Transpiler Initialized");
+            replacements = 0;
+            instructions = Transpilers.Manipulator(instructions, instruction =>
+            instruction.Calls(AccessTools.Method(("UnityEngine.Camera:set_fieldOfView"))), NewInstruction);
+            return instructions;
+        }
+
+        internal static void NewInstruction(CodeInstruction instruction)
+        {
+            //our replacement will run the delegate below
+            CodeInstruction replacement = Transpilers.EmitDelegate<Action<Camera, float>>((cam, fov) =>
+            {
+                //check if we are using the clamp fix or not
+                if (FovConfig.ClampFix.Value)
+                {
+                    cam.fieldOfView = Mathf.Clamp(fov, 1f, FovConfig.MaximumPossibleFov.Value);
+                }
+                else
+                    cam.fieldOfView = fov;
+                
+            });
+            instruction.opcode = replacement.opcode;
+            instruction.operand = replacement.operand;
+            replacements++;
+            Log.LogMessage($"CameraZoom_Transpiler patched Update to clamp the final fov value!\n[ {replacements} ] lines changed");
         }
     }
 
@@ -255,10 +338,10 @@ namespace FovUpdate
         private static IEnumerable<CodeInstruction> TumbleAdjustment_Transpiler(IEnumerable<CodeInstruction> instructions)
         {
             Plugin.Log.LogMessage("TumbleAdjustment Transpiler Initialized");
-            MethodInfo ChangeFov = AccessTools.Method("CameraZoom:OverrideZoomSet");
             replacements = 0;
             //ldc.i4.s
-            instructions = Transpilers.Manipulator(instructions, x => ChangeThisFloat(x), NewInstruction);
+            //only looks for our specific float value and replaces it
+            instructions = Transpilers.Manipulator(instructions, x => ChangeThisFloat(x, 55f), NewInstruction);
 
             return instructions;
         }
@@ -269,10 +352,10 @@ namespace FovUpdate
             instruction.opcode = replacement.opcode;
             instruction.operand = replacement.operand;
             replacements++;
-            Plugin.Log.LogMessage($"TumbleAdjustment patched crouchfov config!\n[ {replacements} ] lines changed");
+            Log.LogMessage($"TumbleAdjustment patched crouchfov config!\n[ {replacements} ] lines changed");
         }
 
-        internal static bool ChangeThisFloat(CodeInstruction instruction)
+        internal static bool ChangeThisFloat(CodeInstruction instruction, float expectedValue)
         {
             if (instruction.opcode != OpCodes.Ldc_R4)
                 return false;
@@ -280,7 +363,7 @@ namespace FovUpdate
             if (!float.TryParse(instruction.operand.ToString(), out float value))
                 return false;
 
-            if (value != 55f)
+            if (value != expectedValue)
                 return false;
 
             return true;
@@ -297,7 +380,7 @@ namespace FovUpdate
     public class ChatCommandHandler
     {
         private static string lastMsg = ":o";
-        private static bool changingFov = false;
+        internal static bool changingFov = false; //now internal for use by other patches
         public static bool Prefix(ChatManager __instance)
         {
             if (__instance.chatMessage == lastMsg)
@@ -445,9 +528,9 @@ namespace FovUpdate
             if(obj == null)
                 obj = PlayerController.instance.playerAvatar.gameObject;
 
+            changingFov = true; //moved to before overridezoomset function for other patches
             CameraZoom.Instance.zoomPrev = CameraZoom.Instance.zoomCurrent;
             CameraZoom.Instance.OverrideZoomSet(newFov, 2f, 1f, 1f, obj, 150);
-            changingFov = true;
 
             while (Mathf.Abs(CameraZoom.Instance.zoomCurrent - newFov) > 0.25 && CameraZoom.Instance.OverrideZoomObject == obj)
             {

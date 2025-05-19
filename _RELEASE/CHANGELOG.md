@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
  
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## [0.3.0]
+- Removed fix added in 0.2.11 for [issue #6](https://github.com/darmuh/FovUpdate/issues/6) in favor of new transpiler patch.  
+- Added transpiler for CameraZoom Update to clamp the resulting fov and hopefully resolve [issue #6](https://github.com/darmuh/FovUpdate/issues/6) for good.  
+- Added prefix patch for OverrideZoomSet to adjust the zoom factor to scale with your new fov.  
+	- If you have a larger fov than 70, the amount you zoom will be lessened to be more in-line with the vanilla behavior.  
+	- And if you have a fov smaller than 70 set, the amount you zoom will be bigger.  
+- Added Prefix patch for SemiFunc.OnScreen to account for your fov difference.  
+	- This method is used by base-game for basically anything that happens when it appears on your screen.  
+	- The most notable example is the Shadow Child enemy's interactions. They should now react more often to you having them in your peripheral even with a higher fov.  
+- Added new config items associated to the new game patches so you can disable them if you don't want their fixes.
+
 ## [0.2.11]
  - Found and added fix for issue reported in [issue #6](https://github.com/darmuh/FovUpdate/issues/6) where numerous speed upgrades would result in an unplayable Field of View while sprinting.
 	- This is a base-game issue that is more apparent when playing with a larger fov

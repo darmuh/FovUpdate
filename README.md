@@ -1,6 +1,7 @@
 # FovUpdate (And More)
 
-## 0.2.11 has been compiled for v0.1.2.31_beta!
+## 0.3.0 has been compiled for v0.1.2.31_beta  
+*If you are not playing the beta version of the game, you may need to downgrade to previous versions.*  
 
 ### This is a simple mod that allows you to update the game's FOV to your desired setting. 
 
@@ -23,6 +24,14 @@
 - As of 0.2.5, upscale or downscale your game with the ``Resolution Multiplier`` config item.
 	- NOTE: This config item overrides the ``Pixelation`` graphics setting when set to a value other than 1.
 	- NOTE2: Unity has a maximum texture size of 16384. If either aspect of your screen's resolution mutliplied by the  multiplier is larger than this value, the config item will be forced to an acceptable value.
+
+### Fixes added in 0.3.0:  
+- ``Maximum FOV fix on/off``: This setting prevents the fov from ever being higher than the number set in ``Maximum Possible Fov``  
+	- Fixes the potential for unplayable fovs after numerous speed upgrade  
+- ``OnScreen fix on/off``: This setting updates the OnScreen method calculation to account for your prefered FOV when enabled.  
+	- Should fix some of the more exagerated examples of being able to stare at enemies like the "Shadow Child" in the corner of your screen without triggering the looked at effect by using a high fov  
+- ``Effects fix on/off``: This setting adjusts the strength of fov effects based on your base fov.  
+	- So if you have a higher fov than standard, the amount you zoom in from enemies or items will be lessened to match a similar zoom distance as with the original default fov.  
 
 
 ### Example Screenshots:
@@ -84,4 +93,4 @@
 
 
 ### Last update to this page:
-May 17th, 2025 (version 0.2.11)  
+May 19th, 2025 (version 0.3.0)  

@@ -17,7 +17,7 @@ namespace FovUpdate
         {
             public const string PLUGIN_GUID = "com.github.darmuh.FovUpdate";
             public const string PLUGIN_NAME = "FovUpdate";
-            public const string PLUGIN_VERSION = "0.2.11";
+            public const string PLUGIN_VERSION = "0.3.0";
         }
 
         internal static ManualLogSource Log = null!;
@@ -32,7 +32,7 @@ namespace FovUpdate
             instance.Config.SettingChanged += OnSettingChanged;
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly());
             Log.LogInfo($"{PluginInfo.PLUGIN_NAME} load complete!");
-            Log.LogInfo($"This version of the mod has been compiled for v0.1.2.23_beta :)");
+            Log.LogInfo($"This version of the mod has been compiled for v0.1.2.31_beta :)");
         }
 
         private void OnSettingChanged(object sender, SettingChangedEventArgs settingChangedArg)
