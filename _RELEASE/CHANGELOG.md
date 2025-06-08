@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
  
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## [0.3.1]
+- Added ability to set specific field of view setting for the map.
+	- Set via the MapFov config item, leave as default to allow for effectsfix to adjust this item's field of view automatically.
+- Added ability to not stretch the UI when using the ultrawide fix.
+	- This is not the best looking and not recommended by default
+- Compiled for latest beta version, v0.1.2.42_beta 
+
 ## [0.3.0]
 - Removed fix added in 0.2.11 for [issue #6](https://github.com/darmuh/FovUpdate/issues/6) in favor of new transpiler patch.  
 - Added transpiler for CameraZoom Update to clamp the resulting fov and hopefully resolve [issue #6](https://github.com/darmuh/FovUpdate/issues/6) for good.  

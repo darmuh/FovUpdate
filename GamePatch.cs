@@ -2,7 +2,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection.Emit;
 using UnityEngine;
 using static FovUpdate.Plugin;
@@ -149,7 +148,10 @@ namespace FovUpdate
             //set newRect to true, signifying we have gotten Rects this run
             if (Rects.Count == 0)
             {
-                Rects = [.. RenderTextureMain.instance.gameObject.GetComponentsInChildren<RectTransform>()];
+                if(!FovConfig.StretchUI())
+                    Rects = [RenderTextureMain.instance.gameObject.GetComponent<RectTransform>()];
+                else
+                    Rects = [.. RenderTextureMain.instance.gameObject.GetComponentsInChildren<RectTransform>()];
                 newRect = true;
             }
 
@@ -178,7 +180,7 @@ namespace FovUpdate
                 ScreenIs = ScreenStatus.Tall;
                 Spam("Updating Aspect Ratio for ultratall support!");
             }
-
+            
             UpdateCams();
             //Calls method to update camera aspect ratios to avoid stretching
             playerCams.Do(c => StretchFix(c));
@@ -211,10 +213,7 @@ namespace FovUpdate
                 if (UltraWideSupport.ScreenIs != UltraWideSupport.ScreenStatus.Default)
                 {
                     UpdateCams();
-                    playerCams.Do(x =>
-                    {
-                        UltraWideSupport.StretchFix(x);
-                    });
+                    playerCams.Do(x => UltraWideSupport.StretchFix(x));
                 }
                 return;
             }
@@ -242,23 +241,45 @@ namespace FovUpdate
     {
         public static void Prefix(ref float zoom)
         {
+            bool adjust = true;
             //early return for:
             //patch disabled via config
             //ForceFovZoomCurve coroutine is running (changingFov bool)
             //TumbleCheck returns true (player is crouching to crouchfov value)
-            if (ChatCommandHandler.changingFov || !FovConfig.EffectsFix.Value || TumbleCheck())
+            if (ChatCommandHandler.changingFov || MapAndConfigCheck(ref zoom, ref adjust) || TumbleCheck())
                 return;
 
             //we get our fov scale by dividing the vanilla fov by our set value
             //Then we adjust the zoom value of this method to be divided by our fov scale
-            float fovScale = 70f / FovConfig.UserDefinedFov.Value;
-            zoom /= fovScale;
+            //adjust boolean is modified by map check to skip this if needed
+            if (adjust)
+            {
+                float fovScale = 70f / FovConfig.UserDefinedFov.Value;
+                zoom /= fovScale;
+            }
             
             //if the max fov fix is enabled, clamp it
             if(FovConfig.ClampFix.Value)
                 Mathf.Clamp(zoom, 1f, FovConfig.MaximumPossibleFov.Value);
             
-            Spam($"zoom set to {zoom}");
+            Spam($"zoom set to {zoom}\n Adjusted: {adjust}");
+        }
+
+        private static bool MapAndConfigCheck(ref float value, ref bool cont)
+        {
+            if(Map.Instance != null)
+            {
+                if (FovConfig.MapFov.Value != 50f && Map.Instance.Active)
+                {
+                    Spam("Adjusting mapfov!");
+                    value = FovConfig.MapFov.Value;
+                    cont = false;
+                    return false;
+                }
+                    
+            }
+
+            return !FovConfig.EffectsFix.Value;
         }
 
         private static bool TumbleCheck()

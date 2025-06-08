@@ -1,6 +1,6 @@
 # FovUpdate (And More)
 
-## 0.3.0 has been compiled for v0.1.2.31_beta  
+## 0.3.1 has been compiled for v0.1.2.42_beta 
 *If you are not playing the beta version of the game, you may need to downgrade to previous versions.*  
 
 ### This is a simple mod that allows you to update the game's FOV to your desired setting. 
@@ -11,17 +11,19 @@
 
 - For basic instructions on how to use this mod, please follow the wiki article [here](https://thunderstore.io/c/repo/p/darmuh/FovUpdate/wiki/3169-how-do-i-change-the-fov/)
 - Set both your base-game field of view and your "crouched" / "tumble" field of view via the config.
+- Set your map item field of view in the config as well.
 - While in-game, you can also use the following chat commands:
 	- ``\fov <number>`` input any number after ``\fov`` to immediately update your fov (and the config item)
 	- ``\cfov <number>`` input any number after ``\cfov`` to immediately update your crouch fov (and the config item)
 	- ``\sfov <number>`` input any number after ``\sfov`` to immediately update your sprinting fov modifier (and the config item)
 	- FYI, everyone in the lobby **will** hear your chat commands
 - Tested briefly in multiplayer, please report any issues to the github for this mod.
-- As of 0.2.2, now provides ``AspectRatioFix`` config item for those with Ultrawide or Ultralong monitors.
+- ``AspectRatioFix`` config item for those with Ultrawide or Ultralong monitors.
 	- This fix is originally from [Oksamies' UltrawideOrLongFix](https://thunderstore.io/c/repo/p/Oksamies/UltrawideOrLongFix/) and has been slightly modified.
-	- As of 0.2.4, will ensure your camera updates to the correct aspect ratio (unstretched horizontally)
-- As of 0.2.3, config change event support has been added for any mod that allows for config changes in-game (REPOConfig)
-- As of 0.2.5, upscale or downscale your game with the ``Resolution Multiplier`` config item.
+	- This setting will ensure your camera updates to the correct aspect ratio (unstretched horizontally)
+	- Don't want your UI stretched? Try the ``Dont Stretch UI`` config item out!
+- Config change event support has been added for any mod that allows for config changes in-game (i.e. REPOConfig)
+- Upscale or downscale your game with the ``Resolution Multiplier`` config item.
 	- NOTE: This config item overrides the ``Pixelation`` graphics setting when set to a value other than 1.
 	- NOTE2: Unity has a maximum texture size of 16384. If either aspect of your screen's resolution mutliplied by the  multiplier is larger than this value, the config item will be forced to an acceptable value.
 
