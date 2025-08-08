@@ -8,7 +8,7 @@ using static FovUpdate.Plugin;
 
 namespace FovUpdate
 {
-    [HarmonyPatch(typeof(CameraZoom), "Awake")]
+    [HarmonyPatch(typeof(CameraZoom), nameof(CameraZoom.Awake))]
     public class CameraPatchThings
     {
         public static void Prefix(CameraZoom __instance)
@@ -37,7 +37,7 @@ namespace FovUpdate
 
         internal static bool AreWeInGame()
         {
-            if (SemiFunc.RunIsLobbyMenu())
+            if (RunManager.instance.levelCurrent == RunManager.instance.levelLobbyMenu)
                 return false;
 
             if (RunManager.instance.levelCurrent == RunManager.instance.levelMainMenu)
@@ -48,7 +48,7 @@ namespace FovUpdate
     }
 
     //ResolutionOverride
-    [HarmonyPatch(typeof(GraphicsManager), "UpdateRenderSize")]
+    [HarmonyPatch(typeof(GraphicsManager), nameof(GraphicsManager.UpdateRenderSize))]
     public class ResolutionOverride
     {
         internal static float lastMultiplier = 1f;
@@ -110,7 +110,7 @@ namespace FovUpdate
 
     //UpdateWindowMode
     //original source - https://github.com/Oksamies/UltrawideOrLongFix/blob/main/Plugin.cs#L67-L113 
-    [HarmonyPatch(typeof(GraphicsManager), "Update")]
+    [HarmonyPatch(typeof(GraphicsManager), nameof(GraphicsManager.Update))]
     public class UltraWideSupport
     {
         //Added for UltraWide Fov Fixes
@@ -202,23 +202,17 @@ namespace FovUpdate
         }
     }
 
-    [HarmonyPatch(typeof(CameraAim), "CameraAimSpawn")]
-    public class SpawnPlayerFov
-    {
-        public static void Postfix()
-        {
-            if (!CameraPatchThings.AreWeInGame())
-            {
-                //fix stretched aspect ratio in main menu
-                if (UltraWideSupport.ScreenIs != UltraWideSupport.ScreenStatus.Default)
-                {
-                    UpdateCams();
-                    playerCams.Do(x => UltraWideSupport.StretchFix(x));
-                }
-                return;
-            }
 
-            if (PlayerAvatar.instance.localCamera.fieldOfView == FovConfig.UserDefinedFov.Value)
+
+    [HarmonyPatch(typeof(PlayerAvatar), nameof(PlayerAvatar.SpawnRPC))]
+    public class SpawnPlayerStuff
+    {
+        public static void Postfix(PlayerAvatar __instance)
+        {
+            if (!CameraPatchThings.AreWeInGame() || !__instance.photonView.IsMine)
+                return;
+
+            if (Camera.main.fieldOfView == FovConfig.UserDefinedFov.Value)
             {
                 Log.LogMessage("@SpawnPatch: Fov already set to correct value");
                 return;
@@ -236,7 +230,22 @@ namespace FovUpdate
         }
     }
 
-    [HarmonyPatch(typeof(CameraZoom), "OverrideZoomSet")]
+    [HarmonyPatch(typeof(SemiFunc), nameof(SemiFunc.OnSceneSwitch))]
+    public class LeaveToMainReset
+    {
+        public static void Postfix()
+        {
+            //fix stretched aspect ratio
+            if (UltraWideSupport.ScreenIs != UltraWideSupport.ScreenStatus.Default)
+            {
+                UpdateCams();
+                playerCams.Do(x => UltraWideSupport.StretchFix(x));
+            }
+            return;
+        }
+    }
+
+    [HarmonyPatch(typeof(CameraZoom), nameof(CameraZoom.OverrideZoomSet))]
     public class EffectsFix
     {
         public static void Prefix(ref float zoom)
@@ -295,7 +304,7 @@ namespace FovUpdate
         }
     }
 
-    [HarmonyPatch(typeof(SemiFunc), "OnScreen")]
+    [HarmonyPatch(typeof(SemiFunc), nameof(SemiFunc.OnScreen))]
     public class AdjustOnScreenBool
     {
         public static void Prefix(ref float paddWidth, ref float paddHeight)
@@ -313,7 +322,7 @@ namespace FovUpdate
         }
     }
 
-    [HarmonyPatch(typeof(CameraZoom), "Update")]
+    [HarmonyPatch(typeof(CameraZoom), nameof(CameraZoom.Update))]
     [HarmonyPriority(Priority.Last)]
     public class CameraZoomUpdateClamp
     {
@@ -324,9 +333,8 @@ namespace FovUpdate
         {
             Plugin.Log.LogMessage("CameraZoomUpdateClamp Transpiler Initialized");
             replacements = 0;
-            instructions = Transpilers.Manipulator(instructions, instruction =>
+            return Transpilers.Manipulator(instructions, instruction =>
             instruction.Calls(AccessTools.Method(("UnityEngine.Camera:set_fieldOfView"))), NewInstruction);
-            return instructions;
         }
 
         internal static void NewInstruction(CodeInstruction instruction)
@@ -350,7 +358,7 @@ namespace FovUpdate
         }
     }
 
-    [HarmonyPatch(typeof(PlayerTumble), "Update")]
+    [HarmonyPatch(typeof(PlayerTumble), nameof(PlayerTumble.Update))]
     [HarmonyPriority(Priority.Last)]
     public class TumbleAdjustment
     {
@@ -362,9 +370,7 @@ namespace FovUpdate
             replacements = 0;
             //ldc.i4.s
             //only looks for our specific float value and replaces it
-            instructions = Transpilers.Manipulator(instructions, x => ChangeThisFloat(x, 55f), NewInstruction);
-
-            return instructions;
+            return Transpilers.Manipulator(instructions, x => ChangeThisFloat(x, 55f), NewInstruction);
         }
 
         internal static void NewInstruction(CodeInstruction instruction)
@@ -397,7 +403,7 @@ namespace FovUpdate
     }
 
     //ChatManager MessageSend
-    [HarmonyPatch(typeof(ChatManager), "MessageSend")]
+    [HarmonyPatch(typeof(ChatManager), nameof(ChatManager.MessageSend))]
     public class ChatCommandHandler
     {
         private static string lastMsg = ":o";

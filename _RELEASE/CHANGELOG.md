@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
  
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## [0.3.2]
+- Small code cleanup in patching.
+- Switched from CameraAim to player spawn patch to update camera fov
+- Switched to OnSceneSwitch instead of CameraAim spawn for stretch fix
+- Compiled for latest public version of the game
+
 ## [0.3.1]
 - Added ability to set specific field of view setting for the map.
 	- Set via the MapFov config item, leave as default to allow for effectsfix to adjust this item's field of view automatically.

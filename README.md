@@ -1,8 +1,5 @@
 # FovUpdate (And More)
 
-## 0.3.1 has been compiled for v0.1.2.42_beta 
-*If you are not playing the beta version of the game, you may need to downgrade to previous versions.*  
-
 ### This is a simple mod that allows you to update the game's FOV to your desired setting. 
 
 ### Also provides support for upscaling/downscaling the game as well as support for UltraWide or UltraLong screens (if enabled)
@@ -95,4 +92,4 @@
 
 
 ### Last update to this page:
-May 19th, 2025 (version 0.3.0)  
+August 7th, 2025 (version 0.3.2)  
