@@ -1,0 +1,44 @@
+[config]
+schemaVersion = "0.0.1"
+
+[general]
+repository = "https://thunderstore.io"
+
+[package]
+namespace = "darmuh"
+name = "FovUpdate"
+description = "Allows you to update the game's FOV to your desired setting. Also provides support for upscaling/downscaling the game as well as support for UltraWide or UltraLong screens (if enabled)"
+websiteUrl = "https://github.com/darmuh/FovUpdate" # TODO: Add a link to your mod repository here (optional)
+containsNsfwContent = false
+
+[package.dependencies]
+BepInEx-BepInExPack = "5.4.2304"
+
+[build]
+icon = "/_RELEASE/icon.png"
+readme = "/README.md"
+outdir = "/artifacts/thunderstore/"
+
+[[build.copy]]
+source = "/artifacts/bin/FovUpdate/release/com.github.darmuh.FovUpdate.dll"
+target = "plugins/"
+
+[[build.copy]]
+source = "/_RELEASE/CHANGELOG.md"
+target = "/"
+
+[[build.copy]]
+source = "/_RELEASE/LICENSE.MD"
+target = "/"
+
+# The following config options only apply when using TCLI to publish to Thunderstore directly:
+
+[publish]
+# See communities at:
+# https://thunderstore.io/api/experimental/community/
+communities = [ "repo" ]
+
+[publish.categories]
+# See categories at:
+# https://thunderstore.io/api/experimental/community/repo/category/
+repo = [ "mods", "tools", "misc" ]

@@ -1,24 +1,17 @@
-﻿using BepInEx.Logging;
-using BepInEx;
-using HarmonyLib;
+﻿using System.Collections.Generic;
 using System.Reflection;
+using BepInEx;
 using BepInEx.Configuration;
-using System.Collections.Generic;
+using BepInEx.Logging;
+using HarmonyLib;
 using UnityEngine;
 
 namespace FovUpdate
 {
-    [BepInPlugin(PluginInfo.PLUGIN_GUID, PluginInfo.PLUGIN_NAME, PluginInfo.PLUGIN_VERSION)]
-
-    public class Plugin : BaseUnityPlugin
+    [BepInAutoPlugin]
+    public partial class Plugin : BaseUnityPlugin
     {
         public static Plugin instance = null!;
-        public static class PluginInfo
-        {
-            public const string PLUGIN_GUID = "com.github.darmuh.FovUpdate";
-            public const string PLUGIN_NAME = "FovUpdate";
-            public const string PLUGIN_VERSION = "0.3.2";
-        }
 
         internal static ManualLogSource Log = null!;
         public static List<Camera> playerCams = [];
@@ -27,11 +20,11 @@ namespace FovUpdate
         {
             instance = this;
             Log = base.Logger;
-            Log.LogInfo($"{PluginInfo.PLUGIN_NAME} is loading with version {PluginInfo.PLUGIN_VERSION}!");
+            Log.LogInfo($"{Name} is loading with version {Version}!");
             FovConfig.Init();
             instance.Config.SettingChanged += OnSettingChanged;
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly());
-            Log.LogInfo($"{PluginInfo.PLUGIN_NAME} load complete!");
+            Log.LogInfo($"{Name} load complete!");
             Log.LogInfo($"This version of the mod has been compiled for REPO version 0.2.1 :)");
         }
 

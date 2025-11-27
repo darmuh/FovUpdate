@@ -1,92 +1,25 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>netstandard2.1</TargetFramework>
-	<GenerateAssemblyInfo>False</GenerateAssemblyInfo>
-    <Nullable>enable</Nullable>
-	  <LangVersion>latest</LangVersion>
-	  <AssemblyVersion>PluginInfo.PLUGIN_VERSION</AssemblyVersion>
-	  <FileVersion>PluginInfo.PLUGIN_VERSION</FileVersion>
-	  <PackageReadmeFile>README.md</PackageReadmeFile>
-	  <PackageIcon>icon.png</PackageIcon>
-	  <BaseOutputPath>C:\Users\user\source\repos\FovUpdate\_RELEASE</BaseOutputPath>
-	  <PlatformTarget>x86</PlatformTarget>
-	  <PackageOutputPath>C:\Users\user\source\repos\FovUpdate\_RELEASE</PackageOutputPath>
-	  <NuGetAuditMode>all</NuGetAuditMode>
-	  <NuGetAudit>False</NuGetAudit>
-	  <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-	  <NoStdLib>true</NoStdLib>
-	  <RestoreAdditionalProjectSources>
-		  https://api.nuget.org/v3/index.json;
-		  https://nuget.samboy.dev/v3/index.json;
-		  https://nuget.bepinex.dev/v3/index.json
-	  </RestoreAdditionalProjectSources>
-  </PropertyGroup>
+	<!-- Primary configuration for the project -->
+	<PropertyGroup>
+		<TargetFramework>netstandard2.1</TargetFramework>
+		<AssemblyName>com.github.darmuh.FovUpdate</AssemblyName>
+		<AssemblyTitle>FovUpdate</AssemblyTitle>
+		<Version>0.3.3</Version>
+		<AssemblyVersion>0.3.3</AssemblyVersion>
+		<!-- Use latest C# version. -->
+		<LangVersion>latest</LangVersion>
+		<!-- See: https://learn.microsoft.com/en-us/dotnet/csharp/nullable-references -->
+		<Nullable>enable</Nullable>
+		<EnableNETAnalyzers>true</EnableNETAnalyzers>
+		<!-- Build, and other generated files go nicely into artifacts/ directory. -->
+		<!-- Enable debug symbols. This will show source code line numbers in stack traces. -->
+		<DebugSymbols>true</DebugSymbols>
+		<DebugType>embedded</DebugType>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)' == 'Release'">
+		<!-- Substitute full path to this directory with ./, hiding it from debug symbols. -->
+		<PathMap>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)'))=./</PathMap>
+	</PropertyGroup>
 
-  <PropertyGroup>
-	<DebugSymbols>true</DebugSymbols>
-	<DebugType>embedded</DebugType>
-	<PathMap>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)'))=./</PathMap>
-	<RunPostBuildEvent>Always</RunPostBuildEvent>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <IsPublishable>False</IsPublishable>
-    <Deterministic>False</Deterministic>
-    <GenerateAssemblyInfo>False</GenerateAssemblyInfo>
-    <CheckForOverflowUnderflow>True</CheckForOverflowUnderflow>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <IsPublishable>False</IsPublishable>
-    <Deterministic>False</Deterministic>
-    <GenerateAssemblyInfo>False</GenerateAssemblyInfo>
-    <CheckForOverflowUnderflow>True</CheckForOverflowUnderflow>
-  </PropertyGroup>
-
-  <ItemGroup>
-    <Compile Remove="_RELEASE\Release\**" />
-    <EmbeddedResource Remove="_RELEASE\Release\**" />
-    <None Remove="_RELEASE\Release\**" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Remove="README.md" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Include="README.md">
-      <PackagePath>\</PackagePath>
-      <Pack>True</Pack>
-    </Content>
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="_RELEASE\CHANGELOG.md" />
-    <None Include="_RELEASE\icon.png" />
-    <None Include="_RELEASE\LICENSE.MD" />
-    <None Include="_RELEASE\manifest.json" />
-  </ItemGroup>
-
-	<ItemGroup>
-		<PackageReference Include="BepInEx.AssemblyPublicizer.MSBuild" Version="0.4.2" PrivateAssets="all" />
-		<PackageReference Include="BepInEx.Analyzers" Version="1.*" PrivateAssets="all" />
-		<PackageReference Include="BepInEx.Core" Version="5.*" />
-		<PackageReference Include="BepInEx.PluginInfoProps" Version="2.*" />
-		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-		<PackageReference Include="UnityEngine.Modules" Version="2022.3.21" IncludeAssets="compile" PrivateAssets="all" />
-		<PackageReference Include="R.E.P.O.GameLibs.Steam" Version="0.2.1-ngd.0" />
-		<PackageReference Include="Zehs.REPOLib" Version="2.*" />
-	</ItemGroup>
-
-	<ItemGroup>
-    <None Update="_RELEASE\icon.png">
-      <Pack>True</Pack>
-      <PackagePath>\</PackagePath>
-    </None>
-  </ItemGroup>
-
-  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="xcopy /y $(ProjectDir)README.md  $(ProjectDir)\_RELEASE\&#xD;&#xA;xcopy /y $(ProjectDir)\_RELEASE\Release\netstandard2.1\FovUpdate.dll $(ProjectDir)\_RELEASE\ " />
-  </Target>
 </Project>

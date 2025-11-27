@@ -1,0 +1,54 @@
+<Project>
+  <!--
+    This is a special file that contains shared configuration
+    for all project files in subdirectories.
+  -->
+
+  <!-- Import our shared user configuration file -->
+  <Import
+    Project="$(SolutionRoot)Config.Build.user.props"
+    Condition="Exists('$(SolutionRoot)Config.Build.user.props')"
+  />
+
+  <!-- NuGet -->
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <Authors>darmuh</Authors>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageIcon>icon.png</PackageIcon>
+    <PackageTags>REPO;$(PackageTags)</PackageTags>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <!-- Primary configuration for the project -->
+  <PropertyGroup>
+    <!-- Use latest C# version. -->
+    <LangVersion>latest</LangVersion>
+    <!-- See: https://learn.microsoft.com/en-us/dotnet/csharp/nullable-references -->
+    <Nullable>enable</Nullable>
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <!-- Build, and other generated files go nicely into artifacts/ directory. -->
+    <UseArtifactsOutput>true</UseArtifactsOutput>
+    <!-- Enable debug symbols. This will show source code line numbers in stack traces. -->
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>embedded</DebugType>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <!-- Substitute full path to this directory with ./, hiding it from debug symbols. -->
+    <PathMap>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)'))=./</PathMap>
+  </PropertyGroup>
+
+  <!-- Custom props -->
+  <PropertyGroup>
+    <!-- Define a variable that points to this directory. -->
+    <SolutionRoot>$(MSBuildThisFileDirectory)</SolutionRoot>
+    <!-- Default values for game files. -->
+    <PathBeforeSteam Condition="'$([MSBuild]::IsOSUnixLike())' == 'true'">$(HOME)/.local/share/</PathBeforeSteam>
+    <PathBeforeSteam Condition="'$([MSBuild]::IsOSUnixLike())' != 'true'">$(MSBuildProgramFiles32)/</PathBeforeSteam>
+    <GameRootDir Condition="$(GameRootDir) == ''">$(PathBeforeSteam)Steam/steamapps/common/REPO/</GameRootDir>
+    <PluginsDir Condition="$(PluginsDir) == ''">$(PeakGameRootDir)/BepInEx/plugins/</PluginsDir>
+    <ManagedDir>$(GameRootDir)/REPO_Data/Managed/</ManagedDir>
+  </PropertyGroup>
+
+</Project>

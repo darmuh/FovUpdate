@@ -1,0 +1,19 @@
+<Project>
+
+  <PropertyGroup>
+    <!-- Set if the default steam game install directory doesn't work. -->
+    <!-- <GameRootDir></GameRootDir> -->
+    <!-- Set if your BepInEx/plugins/ directory isn't in the game files. -->
+    <!-- <PluginsDir></PluginsDir> -->
+	<!-- <TS_API_TOKEN></TS_API_TOKEN>-->
+	<!-- This is your private thunderstore publishing token, do not share with others. 
+	Will allow for publishing directly to thunderstore from command line -->
+  </PropertyGroup>
+
+  <Target Name="DeployFiles" AfterTargets="Build">
+    <Message Text="Deploy → $(PluginsDir)$(AssemblyName).dll" Importance="High" />
+    <Error Text="Plugins directory '$(PluginsDir)' doesn't exist!" Condition="!Exists('$(PluginsDir)')" />
+    <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(PluginsDir)" />
+  </Target>
+
+</Project>
