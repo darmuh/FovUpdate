@@ -50,6 +50,8 @@
 <details>
 <summary>Ultrawide Comparison Screenshots</summary>
 
+*All below screenshots taken at reference resolution 1720x720 (half of 3440x1440)*
+
 ### Main Menu
 
 | EnableAllFixes |  MinimalFixes | NoFixes |
