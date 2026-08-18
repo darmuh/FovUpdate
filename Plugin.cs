@@ -25,7 +25,7 @@ namespace FovUpdate
             instance.Config.SettingChanged += OnSettingChanged;
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly());
             Log.LogInfo($"{Name} load complete!");
-            Log.LogInfo($"This version of the mod has been compiled for REPO version 0.4.4.3 (Cosmetic Update & More)");
+            Log.LogInfo($"This version of the mod has been compiled for REPO version 0.4.4.3 (Cosmetic Update & More)\nEnjoy! :3");
         }
 
         private void OnSettingChanged(object sender, SettingChangedEventArgs settingChangedArg)

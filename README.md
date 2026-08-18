@@ -2,7 +2,7 @@
 
 ### Simple client-sided mod that allows you to update the game's FOV to your desired setting. 
 
-### Also provides UltraWide or UltraLong screens support (if enabled)
+### Also provides UltraWide/UltraLong resolution support with configurable UI fixes
 
 *Please report any issues found to the linked github distro for this mod.*  
 
