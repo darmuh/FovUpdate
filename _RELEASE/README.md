@@ -39,119 +39,46 @@
 ### Example Screenshots:
 <details>
 <summary>FOV Screenshots</summary>
-<details>
-<summary>Icon Original Image</summary>
 
-![Original Icon Image](https://github.com/darmuh/FovUpdate/blob/master/FOV%20Screenshots/iconog.jpg?raw=true)
+| | | | |
+|:---:|:---:|:---:|:---:|
+| ![Original Icon Image](https://github.com/darmuh/FovUpdate/blob/master/FOV%20Screenshots/iconog.jpg?raw=true) | ![Example 1](https://github.com/darmuh/FovUpdate/blob/master/FOV%20Screenshots/example1.jpg?raw=true) | ![Example 2](https://github.com/darmuh/FovUpdate/blob/master/FOV%20Screenshots/example2.jpg?raw=true) | ![Example 3](https://github.com/darmuh/FovUpdate/blob/master/FOV%20Screenshots/example3.jpg?raw=true) |
+| ![Example 4](https://github.com/darmuh/FovUpdate/blob/master/FOV%20Screenshots/example4.jpg?raw=true) | ![Example 5](https://github.com/darmuh/FovUpdate/blob/master/FOV%20Screenshots/example5.jpg?raw=true) | ![Example 6](https://github.com/darmuh/FovUpdate/blob/master/FOV%20Screenshots/example6.jpg?raw=true) | ![Example 7](https://github.com/darmuh/FovUpdate/blob/master/FOV%20Screenshots/example7.jpg?raw=true) |
 
-</details>
-
-<details>
-<summary>Example 1</summary>
-
-![Example 1](https://github.com/darmuh/FovUpdate/blob/master/FOV%20Screenshots/example1.jpg?raw=true)
-
-</details>
-
-<details>
-<summary>Example 2</summary>
-
-![Example 2](https://github.com/darmuh/FovUpdate/blob/master/FOV%20Screenshots/example2.jpg?raw=true)
-
-</details>
-
-<details>
-<summary>Example 3</summary>
-
-![Example 3](https://github.com/darmuh/FovUpdate/blob/master/FOV%20Screenshots/example3.jpg?raw=true)
-
-</details>
-
-<details>
-<summary>Example 4</summary>
-
-![Example 4](https://github.com/darmuh/FovUpdate/blob/master/FOV%20Screenshots/example4.jpg?raw=true)
-
-</details>
-
-<details>
-<summary>Example 5</summary>
-
-![Example 5](https://github.com/darmuh/FovUpdate/blob/master/FOV%20Screenshots/example5.jpg?raw=true)
-
-</details>
-
-<details>
-<summary>Example 6</summary>
-
-![Example 6](https://github.com/darmuh/FovUpdate/blob/master/FOV%20Screenshots/example6.jpg?raw=true)
-
-</details>
-
-<details>
-<summary>Example 7</summary>
-
-![Example 7](https://github.com/darmuh/FovUpdate/blob/master/FOV%20Screenshots/example7.jpg?raw=true)
-
-</details>
 </details>
 
 <details>
 <summary>Ultrawide Comparison Screenshots</summary>
 
-<details>
-<summary>Main Menu</summary>
+### Main Menu
 
 | EnableAllFixes |  MinimalFixes | NoFixes |
 |:---:|:---:|:---:|
 | ![main_full](https://github.com/darmuh/FovUpdate/blob/master/Ultrawide%20Screenshots/main_full.jpg?raw=true)  |  ![main_min](https://github.com/darmuh/FovUpdate/blob/master/Ultrawide%20Screenshots/main_min.jpg?raw=true) | ![main_none](https://github.com/darmuh/FovUpdate/blob/master/Ultrawide%20Screenshots/main_none.jpg?raw=true) |
 
-</details>
-
-<details>
-<summary>Lobby Menu</summary>
+### Lobby Menu
 
 | EnableAllFixes |  MinimalFixes | NoFixes |
 |:---:|:---:|:---:|
 | ![lobby_full](https://github.com/darmuh/FovUpdate/blob/master/Ultrawide%20Screenshots/lobby_full.jpg?raw=true)  |  ![lobby_min](https://github.com/darmuh/FovUpdate/blob/master/Ultrawide%20Screenshots/lobby_min.jpg?raw=true) | ![lobby_none](https://github.com/darmuh/FovUpdate/blob/master/Ultrawide%20Screenshots/lobby_none.jpg?raw=true) |
 
-</details>
-
-<details>
-<summary>Lobby Menu</summary>
-
-| EnableAllFixes |  MinimalFixes | NoFixes |
-|:---:|:---:|:---:|
-| ![lobby_full](https://github.com/darmuh/FovUpdate/blob/master/Ultrawide%20Screenshots/lobby_full.jpg?raw=true)  |  ![lobby_min](https://github.com/darmuh/FovUpdate/blob/master/Ultrawide%20Screenshots/lobby_min.jpg?raw=true) | ![lobby_none](https://github.com/darmuh/FovUpdate/blob/master/Ultrawide%20Screenshots/lobby_none.jpg?raw=true) |
-
-</details>
-
-<details>
-<summary>In-Game UI</summary>
+### In-Game UI
 
 | EnableAllFixes |  MinimalFixes | NoFixes |
 |:---:|:---:|:---:|
 | ![item_full](https://github.com/darmuh/FovUpdate/blob/master/Ultrawide%20Screenshots/item_full.jpg?raw=true)  |  ![item_min](https://github.com/darmuh/FovUpdate/blob/master/Ultrawide%20Screenshots/item_min.jpg?raw=true) | ![item_none](https://github.com/darmuh/FovUpdate/blob/master/Ultrawide%20Screenshots/item_none.jpg?raw=true) |
 
-</details>
-
-<details>
-<summary>In-Game Escape Menu</summary>
+### In-Game Escape Menu
 
 | EnableAllFixes |  MinimalFixes | NoFixes |
 |:---:|:---:|:---:|
 | ![esc_full](https://github.com/darmuh/FovUpdate/blob/master/Ultrawide%20Screenshots/esc_full.jpg?raw=true)  |  ![esc_min](https://github.com/darmuh/FovUpdate/blob/master/Ultrawide%20Screenshots/esc_min.jpg?raw=true) | ![esc_none](https://github.com/darmuh/FovUpdate/blob/master/Ultrawide%20Screenshots/esc_none.jpg?raw=true) |
 
-</details>
-
-<details>
-<summary>Customization Menu</summary>
+### Customization Menu
 
 | EnableAllFixes |  MinimalFixes | NoFixes |
 |:---:|:---:|:---:|
 | ![custom_full](https://github.com/darmuh/FovUpdate/blob/master/Ultrawide%20Screenshots/custom_full.jpg?raw=true)  |  ![custom_min](https://github.com/darmuh/FovUpdate/blob/master/Ultrawide%20Screenshots/custom_min.jpg?raw=true) | ![custom_none](https://github.com/darmuh/FovUpdate/blob/master/Ultrawide%20Screenshots/custom_none.jpg?raw=true) |
-
-</details>
 
 </details>
 
