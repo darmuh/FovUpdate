@@ -5,8 +5,8 @@
 		<TargetFramework>netstandard2.1</TargetFramework>
 		<AssemblyName>com.github.darmuh.FovUpdate</AssemblyName>
 		<AssemblyTitle>FovUpdate</AssemblyTitle>
-		<Version>0.3.3</Version>
-		<AssemblyVersion>0.3.3</AssemblyVersion>
+		<Version>0.4.0</Version>
+		<AssemblyVersion>0.4.0</AssemblyVersion>
 		<!-- Use latest C# version. -->
 		<LangVersion>latest</LangVersion>
 		<!-- See: https://learn.microsoft.com/en-us/dotnet/csharp/nullable-references -->

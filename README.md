@@ -35,61 +35,75 @@
 
 ### Example Screenshots:
 <details>
+<summary>FOV Screenshots</summary>
+<details>
 <summary>Icon Original Image</summary>
 
-![Original Icon Image](https://github.com/darmuh/FovUpdate/blob/master/Screenshots/iconog.jpg?raw=true)
+![Original Icon Image](https://github.com/darmuh/FovUpdate/blob/master/FOV%20Screenshots/iconog.jpg?raw=true)
 
 </details>
 
 <details>
 <summary>Example 1</summary>
 
-![Example 1](https://github.com/darmuh/FovUpdate/blob/master/Screenshots/example1.jpg?raw=true)
+![Example 1](https://github.com/darmuh/FovUpdate/blob/master/FOV%20Screenshots/example1.jpg?raw=true)
 
 </details>
 
 <details>
 <summary>Example 2</summary>
 
-![Example 2](https://github.com/darmuh/FovUpdate/blob/master/Screenshots/example2.jpg?raw=true)
+![Example 2](https://github.com/darmuh/FovUpdate/blob/master/FOV%20Screenshots/example2.jpg?raw=true)
 
 </details>
 
 <details>
 <summary>Example 3</summary>
 
-![Example 3](https://github.com/darmuh/FovUpdate/blob/master/Screenshots/example3.jpg?raw=true)
+![Example 3](https://github.com/darmuh/FovUpdate/blob/master/FOV%20Screenshots/example3.jpg?raw=true)
 
 </details>
 
 <details>
 <summary>Example 4</summary>
 
-![Example 4](https://github.com/darmuh/FovUpdate/blob/master/Screenshots/example4.jpg?raw=true)
+![Example 4](https://github.com/darmuh/FovUpdate/blob/master/FOV%20Screenshots/example4.jpg?raw=true)
 
 </details>
 
 <details>
 <summary>Example 5</summary>
 
-![Example 5](https://github.com/darmuh/FovUpdate/blob/master/Screenshots/example5.jpg?raw=true)
+![Example 5](https://github.com/darmuh/FovUpdate/blob/master/FOV%20Screenshots/example5.jpg?raw=true)
 
 </details>
 
 <details>
 <summary>Example 6</summary>
 
-![Example 6](https://github.com/darmuh/FovUpdate/blob/master/Screenshots/example6.jpg?raw=true)
+![Example 6](https://github.com/darmuh/FovUpdate/blob/master/FOV%20Screenshots/example6.jpg?raw=true)
 
 </details>
 
 <details>
 <summary>Example 7</summary>
 
-![Example 7](https://github.com/darmuh/FovUpdate/blob/master/Screenshots/example7.jpg?raw=true)
+![Example 7](https://github.com/darmuh/FovUpdate/blob/master/FOV%20Screenshots/example7.jpg?raw=true)
+
+</details>
+</details>
+
+<details>
+<summary>Ultrawide Comparison Screenshots</summary>
+
+<details>
+<summary>Example 7</summary>
+
+![Example 7](https://github.com/darmuh/FovUpdate/blob/master/FOV%20Screenshots/example7.jpg?raw=true)
 
 </details>
 
+</details>
 
 ### Last update to this page:
 August 7th, 2025 (version 0.3.2)  

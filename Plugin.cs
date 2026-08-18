@@ -25,7 +25,7 @@ namespace FovUpdate
             instance.Config.SettingChanged += OnSettingChanged;
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly());
             Log.LogInfo($"{Name} load complete!");
-            Log.LogInfo($"This version of the mod has been compiled for REPO version 0.2.1 :)");
+            Log.LogInfo($"This version of the mod has been compiled for REPO version 0.4.4.3 (Cosmetic Update & More)");
         }
 
         private void OnSettingChanged(object sender, SettingChangedEventArgs settingChangedArg)
@@ -42,9 +42,6 @@ namespace FovUpdate
                 CameraZoom.Instance.SprintZoom = FovConfig.UpdateSprintConfigItem();
                 Spam($"SprintFov updated to {CameraZoom.Instance.SprintZoom}");
             }
-
-            if (settingChangedArg.ChangedSetting == FovConfig.ResMultiplier)
-                ResolutionOverride.SetResolutionFix();
 
             if (settingChangedArg.ChangedSetting == FovConfig.UserDefinedFov)
             {
@@ -73,7 +70,7 @@ namespace FovUpdate
             }
 
             //refresh rects to adjust to new ui change
-            if (settingChangedArg.ChangedSetting == FovConfig.DontStretchUI)
+            if (settingChangedArg.ChangedSetting == FovConfig.UI_Adjustments)
                 UltraWideSupport.Rects = [];
         }
 
@@ -84,6 +81,32 @@ namespace FovUpdate
 
             playerCams.RemoveAll(c => c == null);
             CameraZoom.Instance.cams.DoIf(c => !playerCams.Contains(c), c => playerCams.Add(c));
+        }
+
+        // get difference from the norm of 1.7777778f
+        internal static float GetRatioModifier()
+        {
+            //Spam($"GetRatioModifier - {UltraWideSupport.defaultAspectRatio} / {UltraWideSupport.currentAspectRatio}");
+            return UltraWideSupport.defaultAspectRatio / UltraWideSupport.currentAspectRatio;
+        }
+
+        internal static void AdjustToDifference(RectTransform transform, bool updatePos = true)
+        {
+            Spam($"AdjustToDifference {transform.name}, updatePos = {updatePos}");
+            float xScale = transform.localScale.x;
+            float yScale = transform.localScale.y;
+            float zScale = transform.localScale.z;
+            float xDiff = GetRatioModifier();
+
+            // remove horizontal stretching from UI elements using xdiff
+            transform.localScale = new Vector3(xScale * xDiff, yScale, zScale);
+            // adjust anchor based on calculated diff
+            if (updatePos)
+                transform.anchoredPosition = new Vector2(transform.anchoredPosition.x * xDiff, transform.anchoredPosition.y);
+        }
+        internal static bool AreWeInGame()
+        {
+            return !SemiFunc.MenuLevel();
         }
 
         internal static void Spam(string message)

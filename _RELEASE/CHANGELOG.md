@@ -4,6 +4,30 @@ All notable changes to this project will be documented in this file.
  
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## [0.4.0]
+- Compiled on latest public build of the game, 0.4.4.3 (Cosmetic Update & More)
+- Removed ``Resolution Multiplier`` setting as I have since learned that setting this to a resolution higher than your monitor's resolution does nothing but make the game run worse.
+- Added option to ``Pixelation`` setting in-game called ``None`` which will completely remove the pixelation at your current resolution (replacement for resolution multiplier)
+	- done via MenuSlider.Awake patch to add the setting and GraphicsManager.UpdateRenderSize patch to catch the correlated value that was added
+- If Ultrawide support is enabled, the Pixelation settings will scale based on your monitor's resolution rather than the hard-coded values set by the devs (based on 1080p monitors)
+	- done via RenderTextureMain.Start patch
+- Fixed in-game customization menu semibot [looking stretched](https://github.com/darmuh/FovUpdate/issues/10) with Aspect-Ratio Fix enabled
+	- done via PlayerAvatarMenuHover.Awake patch
+- Removed ``Dont Stretch UI`` config in favor of new enum-based config item ``UI Adjustments``
+	- Has 3 possible values to set based on how much you would like this mod to perform UI fixes when using ``AspectRatioFix``
+	- When this is set to ``EnableAllFixes``, FovUpdate makes a best effort to de-stretch and reposition UI elements thru various patches.
+	- These patches include the following:
+		- StatsUI.Update() is a fix for hiding the upgrade text when it is supposed to be hidden by the game.
+		- HealthUI.Start() adjusts the sizing of the in-game HUD.
+		- VideoOverlay.Awake() adjusts the sizing of the various video overlays.
+		- MenuPage.Start() adjusts the sizing of all menu pages except for MenuPagePassword.		
+		- MenuCursor.Start() adjusts size of menu cursor based on current resolution
+		- MenuSelectionBox.MenuSelectionBoxSetTarget() adjusts target scale of this method based on the current resolution
+		- MenuPageCosmetics.Start() is a best effort fix to reposition certain elements where they are supposed to be when playing on an ultra wide
+			- This one is a bit trickier than the other patches and results may vary based on your monitor's resolution.
+- Removed unneeded CameraZoom.Update transpiler since the devs fixed the issue it was originally fixing in the base game.
+	- Removed related ``Maximum FOV fix on/off`` config item
+ 
 ## [0.3.2]
 - Small code cleanup in patching.
 - Switched from CameraAim to player spawn patch to update camera fov

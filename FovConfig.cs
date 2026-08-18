@@ -5,6 +5,13 @@ namespace FovUpdate
 {
     public static class FovConfig
     {
+        public enum AdjustUI
+        {
+            EnableAllFixes,
+            MinimalFixes,
+            NoFixes
+        }
+
         internal static ConfigEntry<bool> DeveloperLogging = null!;
         internal static ConfigEntry<float> UserDefinedFov = null!;
         internal static ConfigEntry<float> UserCrouchFov = null!;
@@ -13,16 +20,14 @@ namespace FovUpdate
         internal static ConfigEntry<float> MaximumPossibleFov = null!;
         public static ConfigEntry<bool> EffectsFix = null!;
         public static ConfigEntry<bool> OnScreenFix = null!;
-        public static ConfigEntry<bool> ClampFix = null!;
         public static ConfigEntry<bool> AspectRatioFix = null!;
-        public static ConfigEntry<float> ResMultiplier = null!;
-        public static ConfigEntry<bool> DontStretchUI = null!;
+        public static ConfigEntry<AdjustUI> UI_Adjustments = null!;
 
         internal static bool ChangingSprintFov = false;
 
         internal static float UpdateSprintConfigItem()
         {
-            if (UserSprintFov.Value + UserDefinedFov.Value > 180f && ClampFix.Value)
+            if (UserSprintFov.Value + UserDefinedFov.Value > MaximumPossibleFov.Value)
             {
                 ChangingSprintFov = true;
                 Plugin.Log.LogMessage($"Sprint FOV + desired FOV exceeds maximum of {MaximumPossibleFov.Value}. Lowering Sprint FOV to maximum acceptable value");
@@ -33,29 +38,46 @@ namespace FovUpdate
             return UserSprintFov.Value;
         }
 
-        //using this method in case we want to add logic to when the UI is stretched/unstretched
-        internal static bool StretchUI()
-        {
-            if (DontStretchUI.Value)
-                return false;
-
-            return true;
-        }
-
         internal static void Init()
         {
             DeveloperLogging = Plugin.instance.Config.Bind("Debug", "Developer Logging", false, new ConfigDescription("Enable this to see developer logging output"));
             UserDefinedFov = Plugin.instance.Config.Bind("Settings", "Fov", 70f, new ConfigDescription("Set this to desired Fov value (standard gameplay)", new AcceptableValueRange<float>(45f, 140f)));
             UserCrouchFov = Plugin.instance.Config.Bind("Settings", "CrouchFov", 55f, new ConfigDescription("Set this to desired Fov value for when the player is crouched (tumble mode)", new AcceptableValueRange<float>(45f, 140f)));
-            UserSprintFov = Plugin.instance.Config.Bind("Settings", "SprintFov", 20f, new ConfigDescription("Set this to the desired base modifier for your fov when sprinting.\nThis number will be added on to your regular fov when you start sprinting.\nDefault in vanilla is 20.\nNOTE: If Maximum FOV fix is enabled, this value will be capped based on your base Fov setting to ensure the fov can never exceed the number set via Maximum Possible Fov", new AcceptableValueRange<float>(0f, 100f)));
+            UserSprintFov = Plugin.instance.Config.Bind("Settings", "SprintFov", 20f, new ConfigDescription("""
+                Set this to the desired base modifier for your fov when sprinting.
+                This number will be added on to your regular fov when you start sprinting.
+                Default in vanilla is 20.
+                NOTE: If Maximum FOV fix is enabled, this value will be capped based on your base Fov setting to ensure the fov can never exceed the number set via Maximum Possible Fov
+                """, new AcceptableValueRange<float>(0f, 100f)));
             MapFov = Plugin.instance.Config.Bind("Settings", "MapFov", 50f, new ConfigDescription("Set this to desired Fov value for when pulling out your map.\nLeave at default value of 50 to let the Effects fix automatically adjust this value based on your base fov", new AcceptableValueRange<float>(35f, 140f)));
-            AspectRatioFix = Plugin.instance.Config.Bind("Settings", "Aspect-ratio fix on/off", false, "Set this to true to enable Oksamies' UltrawideOrLongFix for widescreen compatibility");
-            DontStretchUI = Plugin.instance.Config.Bind("Settings", "Dont Stretch UI", false, "Set this to true if you want the UI to remain the same size regardless of ultrawide/ultralong status\nThis setting does not automatically update when you change it and will only take effect when changing between game scenes.");
-            ResMultiplier = Plugin.instance.Config.Bind("Settings", "Resolution Multiplier", 1f, new ConfigDescription("Use this to upscale or downscale your game!\nNOTE: This config item will override the \"Pixelation\" graphics setting except when the default is set. (1)", new AcceptableValueRange<float>(0.25f, 4.00f)));
-            OnScreenFix = Plugin.instance.Config.Bind("Settings", "OnScreen fix on/off", true, "This setting updates the OnScreen method calculation to account for your prefered FOV when enabled\nShould fix some of the more exagerated examples of being able to stare at enemies like the \"Shadow Child\" in the corner of your screen without triggering the looked at effect by using a high fov");
-            EffectsFix = Plugin.instance.Config.Bind("Settings", "Effects fix on/off", true, "This setting adjusts the strength of fov effects based on your base fov.\nSo if you have a higher fov than standard, the amount you zoom in from enemies or items will be lessened to match a similar zoom distance as with the original default fov");
-            ClampFix = Plugin.instance.Config.Bind("Settings", "Maximum FOV fix on/off", true, "This setting prevents the fov from ever being higher than the number set in Maximum Possible Fov.\nFixes the potential for unplayable fovs after numerous speed upgrade");
+            AspectRatioFix = Plugin.instance.Config.Bind("Settings", "Aspect-ratio fix on/off", false, "Set this to true to enable compatibility with your monitor's resolution (Ultrawide/Ultralong)");
+            UI_Adjustments = Plugin.instance.Config.Bind("Settings", "UI Adjustments", AdjustUI.EnableAllFixes, """
+                Allows you to determine how much this mod will touch the UI.
+                This setting requires a game restart to be used effectively.
+                VALUES:
+                EnableAllFixes - Allow mod full control to adjust UI.
+                MinimalFixes - This only enables minimal fixes to the UI so that it fills the screen, as done in previous versions of this mod.
+                NoFixes - No UI fixes will be enabled and the UI will be left untouched completely.
+                """);
+            OnScreenFix = Plugin.instance.Config.Bind("Settings", "OnScreen fix on/off", true, """
+                This setting updates the OnScreen method calculation to account for your prefered FOV when enabled
+                Should fix some of the more exagerated examples of being able to stare at enemies like the "Shadow Child" in the corner of your screen without triggering the looked at effect by using a high fov
+                """);
+            EffectsFix = Plugin.instance.Config.Bind("Settings", "Effects fix on/off", true, """
+                This setting adjusts the strength of fov effects based on your base fov.
+                So if you have a higher fov than standard, the amount you zoom in from enemies or items will be lessened to match a similar zoom distance as with the original default fov
+                """);
             MaximumPossibleFov = Plugin.instance.Config.Bind("Settings", "Maximum Possible Fov", 170f, new ConfigDescription("Requires Maximum FOV fix to be enabled\nClamps the fov to never be higher than this number", new AcceptableValueRange<float>(150f, 200f)));
+        }
+
+        internal static bool FullUIFixesEnabled()
+        {
+            return UI_Adjustments.Value == AdjustUI.EnableAllFixes;
+        }
+
+        internal static bool MinimalUIFixesEnabled()
+        {
+            return UI_Adjustments.Value != AdjustUI.NoFixes;
         }
     }
 }

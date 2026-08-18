@@ -1,9 +1,11 @@
-﻿using HarmonyLib;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Reflection.Emit;
+using HarmonyLib;
 using UnityEngine;
+using UnityEngine.Events;
+using UnityEngine.UI;
 using static FovUpdate.Plugin;
 
 namespace FovUpdate
@@ -13,7 +15,8 @@ namespace FovUpdate
     {
         public static void Prefix(CameraZoom __instance)
         {
-            if (!AreWeInGame())
+            // issue #10: if no player controller then this camera is probably a menu item (ie. customization menu)
+            if (!AreWeInGame() || __instance.PlayerController == null)
                 return;
 
             playerCams.RemoveAll(c => c == null);
@@ -28,6 +31,7 @@ namespace FovUpdate
 
             });
 
+            __instance.MaximumZoom = FovConfig.MaximumPossibleFov.Value;
             __instance.zoomPrev = FovConfig.UserDefinedFov.Value;
             __instance.zoomNew = FovConfig.UserDefinedFov.Value;
             __instance.zoomCurrent = FovConfig.UserDefinedFov.Value;
@@ -35,76 +39,322 @@ namespace FovUpdate
             __instance.SprintZoom = FovConfig.UpdateSprintConfigItem();
         }
 
-        internal static bool AreWeInGame()
+        
+    }
+
+    [HarmonyPatch(typeof(StatsUI), nameof(StatsUI.Update))]
+    public class HideUpgradeTextFix
+    {
+        public static void Postfix(StatsUI __instance)
         {
-            if (RunManager.instance.levelCurrent == RunManager.instance.levelLobbyMenu)
-                return false;
+            // while this fix could be applied even for standard aspect ratios, it's not necessary
+            // Also allowing to opt out of this one with minimal fixes
+            if (!FovConfig.AspectRatioFix.Value || !FovConfig.FullUIFixesEnabled())
+                return;
 
-            if (RunManager.instance.levelCurrent == RunManager.instance.levelMainMenu)
-                return false;
+            // hide upgrade text when its supposed to be hidden
+            if (__instance.isHidden && __instance.Text.enabled)
+                __instance.Text.enabled = false;
+            else if(!__instance.isHidden && !__instance.Text.enabled)
+                __instance.Text.enabled = true;
 
-            return true;
         }
     }
 
-    //ResolutionOverride
-    [HarmonyPatch(typeof(GraphicsManager), nameof(GraphicsManager.UpdateRenderSize))]
-    public class ResolutionOverride
+    [HarmonyPatch(typeof(HealthUI), nameof(HealthUI.Start))]
+    public class GameHUDFix
     {
-        internal static float lastMultiplier = 1f;
-        internal static bool EarlyReturn = false;
-        public static void SetResolutionFix()
+        public static void Prefix(HealthUI __instance)
         {
-            //do not override resoltuion
-            if (FovConfig.ResMultiplier.Value == 1f && lastMultiplier == FovConfig.ResMultiplier.Value)
-            {
-                Spam("Pixelation setting remaining unchanged");
+            // Allowed to opt out of this fix with minimal fixes
+            if (!FovConfig.AspectRatioFix.Value || !FovConfig.FullUIFixesEnabled())
                 return;
-            }
 
-            //Use game's pixelation setting
-            if (FovConfig.ResMultiplier.Value == 1f)
-            {
-                Spam("Updating to base-game's pixelation setting");
-                lastMultiplier = FovConfig.ResMultiplier.Value;
-                EarlyReturn = true;
-                GraphicsManager.instance.UpdateRenderSize();
+            // grabs all of in-game hud elements together cleanly
+            Transform hud = __instance.transform.parent;
+            if (hud.TryGetComponent<RectTransform>(out RectTransform rectTransform))
+                AdjustToDifference(rectTransform);
+        }
+    }
+
+    [HarmonyPatch(typeof(VideoOverlay), nameof(VideoOverlay.Awake))]
+    public class VideoFix
+    {
+        public static void Prefix(VideoOverlay __instance)
+        {
+            // Allowed to opt out with minimal UI fixes
+            if (!FovConfig.AspectRatioFix.Value || !FovConfig.FullUIFixesEnabled())
                 return;
-            }
 
-            float desiredWidth = Screen.width * FovConfig.ResMultiplier.Value;
-            float desiredHeight = Screen.height * FovConfig.ResMultiplier.Value;
-            float maxTextureSize = SystemInfo.maxTextureSize;
+            // adjusts the video overlay transitions, there's a few of them I haven't tested but should be fine
+            if (__instance.TryGetComponent<RectTransform>(out RectTransform rectTransform))
+                AdjustToDifference(rectTransform);
+        }
+    }
 
-            //github issue #5, Res Multiplier error
-            if (desiredWidth > maxTextureSize || desiredHeight > maxTextureSize)
+    [HarmonyPatch(typeof(PlayerAvatarMenuHover), nameof(PlayerAvatarMenuHover.Awake))]
+    public class UnStretchMenuAvatar
+    {
+        public static void Prefix(PlayerAvatarMenuHover __instance)
+        {
+            // this UI fix cannot be opted out of, it fixes issue #10 on github
+            if (!FovConfig.AspectRatioFix.Value)
+                return;
+
+            // check if parent menu is MenuPageEsc
+            bool adjustPos = __instance.transform.parent?.parent?.GetComponent<MenuPageEsc>() == null;
+
+            // adjusts the avatar preview and will only update the position if the menu is NOT the escape menu
+            if (__instance.TryGetComponent<RectTransform>(out RectTransform rectTransform))
+                AdjustToDifference(rectTransform, adjustPos);
+        }
+    }
+
+    // resize menu cursor to match other UI elements
+    [HarmonyPatch(typeof(MenuCursor), nameof(MenuCursor.Start))]
+    public class MenuCursorFix
+    {
+        public static void Prefix(MenuCursor __instance)
+        {
+            if (!FovConfig.AspectRatioFix.Value || !FovConfig.FullUIFixesEnabled())
+                return;
+
+            Transform? cursor = __instance.transform.GetChild(0);
+
+            if (cursor != null)
             {
-                WARNING($"Unable to apply Resolution Multiplier of {FovConfig.ResMultiplier.Value}!\nExpected Height ({desiredHeight}) or Width ({desiredWidth}) is larger than maxium Unity supported value of (GPU limit) {maxTextureSize}");
-
-                FovConfig.ResMultiplier.Value = Mathf.Min(maxTextureSize / (float)Screen.width, maxTextureSize / (float)Screen.height);
-
-                desiredWidth = (float)Screen.width * FovConfig.ResMultiplier.Value;
-                desiredHeight = (float)Screen.height * FovConfig.ResMultiplier.Value;
-
-                Log.LogMessage($"Resolution multiplier clamped to {FovConfig.ResMultiplier.Value} (GPU limit: {maxTextureSize}) Expected Width: {desiredWidth} Expected Heigh: {desiredHeight}");
+                if (cursor.TryGetComponent<RectTransform>(out RectTransform rectTransform))
+                    AdjustToDifference(rectTransform);
             }
+        }
+    }
 
-            // Apply the resolution (ensure integer values)
-            RenderTextureMain.instance.textureWidthOriginal = Mathf.FloorToInt(desiredWidth);
-            RenderTextureMain.instance.textureHeightOriginal = Mathf.FloorToInt(desiredHeight);
-            lastMultiplier = FovConfig.ResMultiplier.Value;
-            Spam($"RenderTexture resolution set to: {desiredWidth}x{desiredHeight} via multiplier {FovConfig.ResMultiplier.Value}");
+    // resize selection target scale based on resolution
+    [HarmonyPatch(typeof(MenuSelectionBox), nameof(MenuSelectionBox.MenuSelectionBoxSetTarget))]
+    public class MenuSelectionFix
+    {
+        public static void Prefix(ref Vector3 scale, ref Vector2 customScale)
+        {
+            if (!FovConfig.AspectRatioFix.Value || !FovConfig.FullUIFixesEnabled())
+                return;
+
+            // calculate diference from standard resolution
+            float ratio = GetRatioModifier();
+
+            // remove horizontal/vertical stretching from UI elements using ratio
+            scale = new Vector3((scale.x * ratio), scale.y * ratio, scale.z);
+
+            // remove horizontal/vertical stretching for slider based menu items
+            customScale = new Vector2((customScale.x * ratio), customScale.y * ratio);
+        }
+    }
+
+    // fix misaligned menu buttons in cosmetics page
+    [HarmonyPatch(typeof(MenuPageCosmetics), nameof(MenuPageCosmetics.Start))]
+    public class CosmeticsPageFixes
+    {
+        public static void Postfix(MenuPageCosmetics __instance)
+        {
+            if (!FovConfig.AspectRatioFix.Value || !FovConfig.FullUIFixesEnabled())
+                return;
+
+            // this one is a bit of a messy fix because even when I don't touch the UI these elements are borked outside native res
+            // The below is not perfect and results may vary by each resolution
+
+            float ratioMod = GetRatioModifier();
+
+            // native res does not need any changes
+            if (ratioMod == 1)
+                return;
+
+            AdjustCosmeticCategoryButtons(__instance.categoriesTransform.parent, __instance.categoriesHolder, ratioMod);
+            AdjustCosmeticCategoryButtons(__instance.subCategoriesTransform.parent, __instance.subCategoriesHolder, ratioMod);
+
         }
 
-        public static void Postfix()
+        // breakout method for re-use between categories/subcategories buttons
+        private static void AdjustCosmeticCategoryButtons(Transform maskTransform, MenuElementCosmeticCategoryScroll holder, float ratioMod)
         {
-            if (EarlyReturn)
-            {
-                EarlyReturn = false;
+            if (!maskTransform.TryGetComponent<RectMask2D>(out RectMask2D subCatMask2D))
                 return;
+
+            // this may be selfish of me, but it looks better with some negative padding so I've changed it here
+            subCatMask2D.padding = new(-10f, subCatMask2D.padding.y, subCatMask2D.padding.z, subCatMask2D.padding.w);
+
+            Spam("Attempting to fix customize menu category arrow buttons");
+            Spam("Get World Corners:");
+            Vector3[] corners = new Vector3[4];
+            subCatMask2D.rectTransform.GetWorldCorners(corners);
+            for (int i = 0; i < corners.Length; i++)
+                Spam($"{corners[i]}");
+
+            if (holder.buttonLeft.TryGetComponent<RectTransform>(out RectTransform leftBut))
+            {
+                float cornerPos = corners[0].x - (leftBut.sizeDelta.x * ratioMod);
+                Spam($"Left Corner Position of mask with resolution offset for button - {cornerPos}");
+
+                // Set left button position to left of scroller mask using above calculation and a universal padding value of 5
+                leftBut.position = new Vector3(cornerPos + 5f, leftBut.position.y, leftBut.position.z);
             }
 
-            SetResolutionFix();
+            if (holder.buttonRight.TryGetComponent<RectTransform>(out RectTransform rightBut))
+            {
+                Spam($"Right button placed at right corner of mask {corners[3].x}");
+
+                // set right button position directly at right of scroller mask (plus 5 for padding), no additional calculation needed
+                rightBut.position = new Vector3(corners[3].x + 5f, rightBut.position.y, rightBut.position.z);
+            }
+        }
+    }
+
+    [HarmonyPatch(typeof(MenuPage), nameof(MenuPage.Start))]
+    public class MenuPagesFix
+    {
+        // ignore scaling on these objects in all menus
+        private static List<string> DontTouch = ["Background", "Panel Back", "Panel", "Bool Setting - "];
+
+        public static void Prefix(MenuPage __instance)
+        {
+            if (!FovConfig.AspectRatioFix.Value || !FovConfig.FullUIFixesEnabled())
+                return;
+
+            // password page gets kinda messed up if it's not excluded
+            // to include this particular page in the future would prob require patching MenuPagePassword.Update (ie confirmButtonAnimationTransform)
+            if (__instance.gameObject.GetComponent<MenuPagePassword>() != null)
+                return;
+
+            bool escMenu = __instance.gameObject.GetComponent<MenuPageEsc>() != null;
+            bool lobbyMenu = __instance.gameObject.GetComponent<MenuPageLobby>() != null;
+
+            Spam($"escMenu - {escMenu}, lobbyMenu - {lobbyMenu}");
+
+            for (int i = 0; i < __instance.transform.childCount; i++)
+            {
+                // should adjust position bool, generally will always be true
+                bool adjustPos = true;
+                Transform child = __instance.transform.GetChild(i);
+
+                // leave backgrounds, panels, etc. as-is (no resizing or repositioning)
+                if (DontTouch.Contains(child.gameObject.name))
+                    continue;
+
+                // dont reposition anything in esc menu
+                if (escMenu)
+                    adjustPos = false; //child.gameObject.name != "Header";
+
+                // lobby menu should only move the gradient
+                if (lobbyMenu)
+                    adjustPos = child.gameObject.name == "Gradient";
+
+                if (child.TryGetComponent<RectTransform>(out RectTransform rectTransform))
+                    AdjustToDifference(rectTransform, adjustPos);
+            }
+        }
+    }
+
+    [HarmonyPatch(typeof(RenderTextureMain), nameof(RenderTextureMain.Start))]
+    public class RenderTextureMainOverrides
+    {
+        public static void Postfix(RenderTextureMain __instance)
+        {
+            // this patch is specifically for ultrawide support
+            if (!FovConfig.AspectRatioFix.Value)
+                return;
+
+            // replacing the below to scale based on the monitor's actual resolution rather than 1080p
+            __instance.textureWidthLarge = (float)Screen.width * 0.78f; // originally 1500 which is 78% of 1920
+            __instance.textureWidthMedium = (float)Screen.width * 0.58f; // originally 1125 which is 58% of 1920 (20% decrease)
+            __instance.textureWidthSmall = (float)Screen.width * 0.39f; // originally 750 which is 39% of 1920 (19% decrease)
+
+            __instance.textureHeightLarge = (float)Screen.height * 0.77f; // originally 836 which is 77.4% of 1080
+            __instance.textureHeightMedium = (float)Screen.height * 0.58f; // originally 627 which is 58% of 1080
+            __instance.textureHeightSmall = (float)Screen.height * 0.38f; // originally 418 which is 38% of 1080
+
+            // update to our values
+            GraphicsManager.instance.UpdateRenderSize();
+        }
+    }
+
+    [HarmonyPatch(typeof(GraphicsManager), nameof(GraphicsManager.UpdateRenderSize))]
+    public class CatchNoPixelationSetting
+    {
+        // This will skip the vanilla method if our custom pixelation setting "None" is chosen
+        public static bool Prefix()
+        {
+            int setting = DataDirector.instance.SettingValueFetch(DataDirector.Setting.RenderSize);
+            if (setting != 99)
+            {
+                Spam($"Non-controlled pixelation setting set! ({setting})");
+                return true;
+            }
+
+            Spam($"Controlled pixelation setting being set! ({setting})");
+            UseNonePixelation();
+            return false;
+        }
+
+        internal static void UseNonePixelation()
+        {
+            Spam("Setting pixelation to None!");
+            RenderTextureMain.instance.textureWidthOriginal = (float)Screen.width; // set to monitor resolution
+            RenderTextureMain.instance.textureHeightOriginal = (float)Screen.height; // set to monitor resolution
+            RenderTextureMain.instance.ResetResolution();
+        }
+    }
+
+    [HarmonyPatch(typeof(MenuSlider), nameof(MenuSlider.Awake))]
+    public class InsertPixelationSetting
+    {
+        // Selection Event
+        private static readonly UnityEvent Nopixel = new();
+        // Pixelation Menu Slider (refreshes every time the menu page is opened)
+        private static MenuSlider? PixelSlider { get; set; } = null!;
+        // The option this mod adds to the slider, will be created only if it's null
+        private static MenuSlider.CustomOption? NoneOption { get; set; } = null!;
+        public static void Prefix(MenuSlider __instance)
+        {
+            if (__instance.elementName != "Pixelation")
+                return;
+
+            PixelSlider = __instance;
+            // enable wrap around for the setting because it's nice
+            PixelSlider.wrapAround = true;
+            // create the option, localization is optional so we set it null
+            NoneOption ??= new MenuSlider.CustomOption
+                {
+                    customOptionText = "None",
+                    localizedCustomOptionText = null,
+                    onOption = Nopixel
+                };
+            // set our unique value for this setting in case others insert another option in the future
+            NoneOption.customValueInt = 99;
+
+            // stop here, slider already has our option
+            if (PixelSlider.customOptions.Contains(NoneOption))
+                return;
+
+            // remove listeners because we're going to readd our listener here
+            Nopixel.RemoveAllListeners();
+
+            // this basically emulates the vanilla method Menuslider.CustomOptionAdd
+            // not using vanilla method because we need to keep track of the option and it returns void
+            PixelSlider.customOptions.Add(NoneOption);
+            PixelSlider.settingSegments = Mathf.Max(PixelSlider.customOptions.Count - 1, 1);
+            PixelSlider.startValue = 0;
+            PixelSlider.endValue = PixelSlider.customOptions.Count - 1;
+
+            // add our action for the setting
+            Nopixel.AddListener(SetNone);
+
+            // set bar percentage (float) based on option number using the saved setting value
+            PixelSlider.SetBar(PixelSlider.GetIndexFromCustomValue(DataDirector.instance.SettingValueFetch(DataDirector.Setting.RenderSize) / PixelSlider.endValue));
+            Spam("Inserted 'none' Pixelation setting!");
+        }
+
+        private static void SetNone()
+        {
+            Log.LogMessage("Pixelation set to [NONE] by FovUpdate");
+            GraphicsManager.instance.UpdateRenderSize();
         }
     }
 
@@ -148,7 +398,7 @@ namespace FovUpdate
             //set newRect to true, signifying we have gotten Rects this run
             if (Rects.Count == 0)
             {
-                if(!FovConfig.StretchUI())
+                if(!FovConfig.MinimalUIFixesEnabled())
                     Rects = [RenderTextureMain.instance.gameObject.GetComponent<RectTransform>()];
                 else
                     Rects = [.. RenderTextureMain.instance.gameObject.GetComponentsInChildren<RectTransform>()];
@@ -209,7 +459,7 @@ namespace FovUpdate
     {
         public static void Postfix(PlayerAvatar __instance)
         {
-            if (!CameraPatchThings.AreWeInGame() || !__instance.photonView.IsMine)
+            if (!AreWeInGame() || !__instance.photonView.IsMine)
                 return;
 
             if (Camera.main.fieldOfView == FovConfig.UserDefinedFov.Value)
@@ -267,10 +517,6 @@ namespace FovUpdate
                 zoom /= fovScale;
             }
             
-            //if the max fov fix is enabled, clamp it
-            if(FovConfig.ClampFix.Value)
-                Mathf.Clamp(zoom, 1f, FovConfig.MaximumPossibleFov.Value);
-            
             Spam($"zoom set to {zoom}\n Adjusted: {adjust}");
         }
 
@@ -310,7 +556,7 @@ namespace FovUpdate
         public static void Prefix(ref float paddWidth, ref float paddHeight)
         {
             //early return if we are not in game or the fix is disabled
-            if (!CameraPatchThings.AreWeInGame() || !FovConfig.OnScreenFix.Value)
+            if (!AreWeInGame() || !FovConfig.OnScreenFix.Value)
                 return;
 
             //get fov scale by dividing our defined fov by the vanilla 70
@@ -319,42 +565,6 @@ namespace FovUpdate
 
             paddHeight /= fovScale;
             paddWidth /= fovScale;
-        }
-    }
-
-    [HarmonyPatch(typeof(CameraZoom), nameof(CameraZoom.Update))]
-    [HarmonyPriority(Priority.Last)]
-    public class CameraZoomUpdateClamp
-    {
-        static int replacements = 0;
-
-        [HarmonyTranspiler]
-        private static IEnumerable<CodeInstruction> CameraZoom_Transpiler(IEnumerable<CodeInstruction> instructions)
-        {
-            Plugin.Log.LogMessage("CameraZoomUpdateClamp Transpiler Initialized");
-            replacements = 0;
-            return Transpilers.Manipulator(instructions, instruction =>
-            instruction.Calls(AccessTools.Method(("UnityEngine.Camera:set_fieldOfView"))), NewInstruction);
-        }
-
-        internal static void NewInstruction(CodeInstruction instruction)
-        {
-            //our replacement will run the delegate below
-            CodeInstruction replacement = Transpilers.EmitDelegate<Action<Camera, float>>((cam, fov) =>
-            {
-                //check if we are using the clamp fix or not
-                if (FovConfig.ClampFix.Value)
-                {
-                    cam.fieldOfView = Mathf.Clamp(fov, 1f, FovConfig.MaximumPossibleFov.Value);
-                }
-                else
-                    cam.fieldOfView = fov;
-                
-            });
-            instruction.opcode = replacement.opcode;
-            instruction.operand = replacement.operand;
-            replacements++;
-            Log.LogMessage($"CameraZoom_Transpiler patched Update to clamp the final fov value!\n[ {replacements} ] lines changed");
         }
     }
 
@@ -552,14 +762,18 @@ namespace FovUpdate
             if(changingFov)
                 yield break;
 
-            if(obj == null)
-                obj = PlayerController.instance.playerAvatar.gameObject;
+            GameObject overrideObj;
+
+            if (obj == null)
+                overrideObj = PlayerController.instance.playerAvatar.gameObject;
+            else
+                overrideObj = obj;
 
             changingFov = true; //moved to before overridezoomset function for other patches
             CameraZoom.Instance.zoomPrev = CameraZoom.Instance.zoomCurrent;
             CameraZoom.Instance.OverrideZoomSet(newFov, 2f, 1f, 1f, obj, 150);
 
-            while (Mathf.Abs(CameraZoom.Instance.zoomCurrent - newFov) > 0.25 && CameraZoom.Instance.OverrideZoomObject == obj)
+            while (Mathf.Abs(CameraZoom.Instance.zoomCurrent - newFov) > 0.25 && CameraZoom.Instance.OverrideZoomObject == overrideObj)
             {
                 //Plugin.Spam($"Fov is {CameraZoom.Instance.zoomCurrent}");
                 yield return null!;

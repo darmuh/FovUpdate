@@ -1,0 +1,8 @@
+Main Menu:
+Header = UI/HUD/HUD Canvas/HUD/Menu Holder/Menu Page Main(Clone)/Header
+Buttons = UI/HUD/HUD Canvas/HUD/Menu Holder/Menu Page Main(Clone)/Buttons
+
+MenuHolder.instance 
+
+HideAndDontSave => Menu Page
+MenuPage patch
