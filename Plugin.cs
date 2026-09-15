@@ -11,10 +11,10 @@ namespace FovUpdate
     [BepInAutoPlugin]
     public partial class Plugin : BaseUnityPlugin
     {
-        public static Plugin instance = null!;
+        internal static Plugin instance = null!;
 
         internal static ManualLogSource Log = null!;
-        public static List<Camera> playerCams = [];
+        internal static List<Camera> playerCams = [];
 
         private void Awake()
         {
@@ -83,6 +83,21 @@ namespace FovUpdate
             CameraZoom.Instance.cams.DoIf(c => !playerCams.Contains(c), c => playerCams.Add(c));
         }
 
+        // ---- Testing Methods, accessible via UnityExplorer ---- //
+        private static void TestUltraWide() => SetWindowRes(1720, 720);
+
+        private static void Test1610() => SetWindowRes(1280, 800);
+
+        private static void TestMobileRes() => SetWindowRes(720, 1280);
+
+        private static void ReloadScene() => RunManager.instance.RestartScene();
+
+        internal static void SetWindowRes(int width, int height)
+        {
+            UnityEngine.Screen.SetResolution(width, height, false);
+        }
+        // ---- Testing Methods, accessible via UnityExplorer ---- //
+
         // get difference from the norm of 1.7777778f
         internal static float GetRatioModifier()
         {
@@ -96,13 +111,38 @@ namespace FovUpdate
             float xScale = transform.localScale.x;
             float yScale = transform.localScale.y;
             float zScale = transform.localScale.z;
-            float xDiff = GetRatioModifier();
+            float ratio = GetRatioModifier();
 
-            // remove horizontal stretching from UI elements using xdiff
-            transform.localScale = new Vector3(xScale * xDiff, yScale, zScale);
-            // adjust anchor based on calculated diff
-            if (updatePos)
-                transform.anchoredPosition = new Vector2(transform.anchoredPosition.x * xDiff, transform.anchoredPosition.y);
+            // ultrawide
+            if (ratio < 1f)
+            {
+                if (xScale <= 0f)
+                    return;
+
+                // remove horizontal stretching from UI elements using ratio
+                transform.localScale = new Vector3(xScale * ratio, yScale, zScale);
+                // adjust anchor based on calculated diff
+                if (updatePos)
+                    transform.anchoredPosition = new Vector2(transform.anchoredPosition.x * ratio, transform.anchoredPosition.y);
+            }
+
+            // taller than 16:9 resolutions (like 16:10)
+            if (ratio > 1f)
+            {
+                if (yScale <= 0f)
+                    return;
+
+                // remove vertical stretching from UI elements using ratio
+                // dividing rather than multiplying for vertical scaling
+                transform.localScale = new Vector3(xScale, yScale / ratio, zScale);
+                // adjust anchor based on calculated diff
+                if (updatePos)
+                {
+                    transform.anchoredPosition = new Vector2(transform.anchoredPosition.x, transform.anchoredPosition.y / ratio);
+                } 
+                Spam($"Position: {transform.anchoredPosition}");
+            }
+            
         }
         internal static bool AreWeInGame()
         {

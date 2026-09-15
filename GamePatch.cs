@@ -1,7 +1,7 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using System.Reflection.Emit;
+using System.Threading.Tasks;
 using HarmonyLib;
 using UnityEngine;
 using UnityEngine.Events;
@@ -67,13 +67,93 @@ namespace FovUpdate
         public static void Prefix(HealthUI __instance)
         {
             // Allowed to opt out of this fix with minimal fixes
-            if (!FovConfig.AspectRatioFix.Value || !FovConfig.FullUIFixesEnabled())
+            if (!FovConfig.AspectRatioFix.Value || !FovConfig.FullUIFixesEnabled() || !AreWeInGame())
+                return;
+
+            float ratio = GetRatioModifier();
+
+            // native fixes not needed
+            if (ratio == 1f)
                 return;
 
             // grabs all of in-game hud elements together cleanly
             Transform hud = __instance.transform.parent;
             if (hud.TryGetComponent<RectTransform>(out RectTransform rectTransform))
-                AdjustToDifference(rectTransform);
+                AdjustToDifference(rectTransform, ratio < 1f); //only reposition for ultrawide res, not ultratall              
+        }
+    }
+
+    [HarmonyPatch(typeof(SemiUI), nameof(SemiUI.Start))]
+    public class SemiUIPositionFixes
+    {
+        private static TaskCompletionSource<float> ItemHintYTask = new();
+        public static void Postfix(SemiUI __instance)
+        {
+            // Allowed to opt out of this fix with minimal fixes
+            if (!FovConfig.AspectRatioFix.Value || !FovConfig.FullUIFixesEnabled() || !AreWeInGame())
+                return;
+
+            float ratio = GetRatioModifier();
+
+            // not needed for native
+            if (ratio == 1f)
+                return;
+
+            // ultrawide (maybe not needed)
+            if (ratio < 1f)
+            {
+                __instance.hidePosition = new(__instance.hidePosition.x * ratio, __instance.hidePosition.y);
+                __instance.showPosition = new(__instance.showPosition.x * ratio, __instance.showPosition.y);
+            }
+
+            // ultratall
+            if (ratio > 1f)
+            {
+                bool shopNumbers = __instance.transform.parent.name == "Shop";
+                bool itemInfo = __instance.GetComponent<ItemInfoUI>() != null;
+                bool itemInfoExtra = __instance.GetComponent<ItemInfoExtraUI>() != null;
+
+                if (itemInfoExtra)
+                {
+                    _ = GetItemHintY(__instance, ratio);
+                    return;
+                }
+                   
+                if (shopNumbers)
+                {
+                    __instance.hidePosition = new(__instance.hidePosition.x, __instance.hidePosition.y * ratio);
+                    __instance.showPosition = new(__instance.showPosition.x, __instance.showPosition.y / ratio);
+
+                    // fix scan lines showing up in regular gameplay for ultratall
+                    if (!SemiFunc.IsLevelShop(RunManager.instance.levelCurrent))
+                        __instance.AllChildrenSetActive(false);
+                }
+                else
+                {
+                    __instance.hidePosition = new(__instance.hidePosition.x, __instance.hidePosition.y * ratio);
+                    __instance.showPosition = new(__instance.showPosition.x, __instance.showPosition.y * ratio);
+                }
+
+                if (itemInfo)
+                {
+                    Spam($"Setting result for ItemHintYTask to {__instance.showPosition.y}");
+                    ItemHintYTask.TrySetResult(__instance.showPosition.y);
+                }
+                    
+            }
+        }
+
+        private static async Task GetItemHintY(SemiUI __instance, float ratio)
+        {
+            if(!ItemHintYTask.Task.IsCompleted)
+                await ItemHintYTask.Task;
+            
+            Spam($"Setting {__instance.name} new positions!");
+            __instance.hidePosition = new(__instance.hidePosition.x, __instance.hidePosition.y * ratio);
+            __instance.showPosition = new(__instance.showPosition.x, ItemHintYTask.Task.Result + 36f);
+
+            Spam($"Show {__instance.showPosition}, Hide {__instance.hidePosition}");
+            ItemHintYTask = new(); // reset task for next time patch runs
         }
     }
 
@@ -86,9 +166,15 @@ namespace FovUpdate
             if (!FovConfig.AspectRatioFix.Value || !FovConfig.FullUIFixesEnabled())
                 return;
 
+            float ratio = GetRatioModifier();
+
+            // no fixes needed for native
+            if (ratio == 1f)
+                return;
+
             // adjusts the video overlay transitions, there's a few of them I haven't tested but should be fine
             if (__instance.TryGetComponent<RectTransform>(out RectTransform rectTransform))
-                AdjustToDifference(rectTransform);
+                AdjustToDifference(rectTransform, ratio < 1f); // only reposition ultrawide, not ultratall
         }
     }
 
@@ -112,11 +198,15 @@ namespace FovUpdate
 
     // resize menu cursor to match other UI elements
     [HarmonyPatch(typeof(MenuCursor), nameof(MenuCursor.Start))]
-    public class MenuCursorFix
+    public class MenuCursorSizeFix
     {
         public static void Prefix(MenuCursor __instance)
         {
             if (!FovConfig.AspectRatioFix.Value || !FovConfig.FullUIFixesEnabled())
+                return;
+
+            // fix not needed for native
+            if (GetRatioModifier() == 1f) 
                 return;
 
             Transform? cursor = __instance.transform.GetChild(0);
@@ -124,7 +214,7 @@ namespace FovUpdate
             if (cursor != null)
             {
                 if (cursor.TryGetComponent<RectTransform>(out RectTransform rectTransform))
-                    AdjustToDifference(rectTransform);
+                    AdjustToDifference(rectTransform, false); // no need to reposition the cursor
             }
         }
     }
@@ -141,11 +231,26 @@ namespace FovUpdate
             // calculate diference from standard resolution
             float ratio = GetRatioModifier();
 
-            // remove horizontal/vertical stretching from UI elements using ratio
-            scale = new Vector3((scale.x * ratio), scale.y * ratio, scale.z);
+            // ultrawide
+            if (ratio < 1f)
+            {
+                // remove horizontal stretching from UI elements using ratio
+                scale = new Vector3(scale.x * ratio, scale.y, scale.z);
 
-            // remove horizontal/vertical stretching for slider based menu items
-            customScale = new Vector2((customScale.x * ratio), customScale.y * ratio);
+                // remove horizontal stretching for slider based menu items
+                customScale = new Vector2(customScale.x * ratio, customScale.y);
+            }
+
+            // ultratall
+            if (ratio > 1f)
+            {
+                // remove vertical stretching from UI elements using ratio
+                scale = new Vector3(scale.x, scale.y / ratio, scale.z);
+
+                // remove vertical stretching for slider based menu items
+                customScale = new Vector2(customScale.x, customScale.y / ratio);
+            }
+            
         }
     }
 
@@ -189,21 +294,64 @@ namespace FovUpdate
                 Spam($"{corners[i]}");
 
             if (holder.buttonLeft.TryGetComponent<RectTransform>(out RectTransform leftBut))
-            {
-                float cornerPos = corners[0].x - (leftBut.sizeDelta.x * ratioMod);
-                Spam($"Left Corner Position of mask with resolution offset for button - {cornerPos}");
+            { 
+                float xPos = corners[0].x;
+                float yPos = leftBut.position.y;
+                if (ratioMod < 1)
+                    xPos -= ((leftBut.sizeDelta.x * ratioMod) + 5f); // ultrawide res position
+                else
+                {
+                    xPos -= (leftBut.sizeDelta.x - 20f); // ultratall res position
+                    yPos = corners[0].y;
+                }
+
+                Spam($"Left Corner Position of mask with resolution offset for button - {xPos}, {yPos}");
 
                 // Set left button position to left of scroller mask using above calculation and a universal padding value of 5
-                leftBut.position = new Vector3(cornerPos + 5f, leftBut.position.y, leftBut.position.z);
+                leftBut.position = new Vector3(xPos , yPos, leftBut.position.z);            
             }
 
             if (holder.buttonRight.TryGetComponent<RectTransform>(out RectTransform rightBut))
             {
-                Spam($"Right button placed at right corner of mask {corners[3].x}");
+                float xPos = corners[3].x;
+                float yPos = rightBut.position.y;
+
+                if (ratioMod > 1)
+                    yPos = corners[3].y;
+                
+                Spam($"Right button placed at right corner of mask {xPos}, {yPos}");
 
                 // set right button position directly at right of scroller mask (plus 5 for padding), no additional calculation needed
-                rightBut.position = new Vector3(corners[3].x + 5f, rightBut.position.y, rightBut.position.z);
+                rightBut.position = new Vector3(xPos, yPos, rightBut.position.z);
             }
+
+            // fix ultratall divider position initial value
+            if (ratioMod > 1f)
+            {
+                holder.menuPageCosmetics.topDividerRestingPositionStart = new(holder.menuPageCosmetics.topDividerRestingPositionStart.x, holder.menuPageCosmetics.topDividerRestingPositionStart.y / ratioMod);
+                holder.menuPageCosmetics.topDividerRestingPositionCurrent = new(holder.menuPageCosmetics.topDividerRestingPositionCurrent.x, holder.menuPageCosmetics.topDividerRestingPositionCurrent.y / ratioMod);
+                holder.menuPageCosmetics.topDividerRestingPositionEnd = new(holder.menuPageCosmetics.topDividerRestingPositionEnd.x, holder.menuPageCosmetics.topDividerRestingPositionEnd.y / ratioMod);
+                holder.menuPageCosmetics.topDividerRestingPositionEndNew = new(holder.menuPageCosmetics.topDividerRestingPositionEndNew.x, holder.menuPageCosmetics.topDividerRestingPositionEndNew.y / ratioMod);
+            }    
+        }
+    }
+
+    [HarmonyPatch(typeof(MenuPageCosmetics), nameof(MenuPageCosmetics.RefreshScrollContent))]
+    public class CustomizePageTallFix
+    {
+        public static void Postfix(MenuPageCosmetics __instance)
+        {
+            if (!FovConfig.AspectRatioFix.Value || !FovConfig.FullUIFixesEnabled())
+                return;
+
+            float ratioMod = GetRatioModifier();
+
+            // native res and ultrawide does not need any changes
+            if (ratioMod <= 1)
+                return;
+
+            // fix refresh height for ultratall
+            __instance.topDividerRestingPositionEndNew = new (__instance.topDividerRestingPositionEnd.x, __instance.topDividerRestingPositionEndNew.y / ratioMod);
         }
     }
 
@@ -211,11 +359,17 @@ namespace FovUpdate
     public class MenuPagesFix
     {
         // ignore scaling on these objects in all menus
-        private static List<string> DontTouch = ["Background", "Panel Back", "Panel", "Bool Setting - "];
+        private static readonly List<string> DontTouch = ["Background", "Panel Back", "Panel", "Bool Setting - "];
 
         public static void Prefix(MenuPage __instance)
         {
             if (!FovConfig.AspectRatioFix.Value || !FovConfig.FullUIFixesEnabled())
+                return;
+
+            float ratioMod = GetRatioModifier();
+
+            // not needed at native res
+            if (ratioMod == 1f)
                 return;
 
             // password page gets kinda messed up if it's not excluded
@@ -230,12 +384,15 @@ namespace FovUpdate
 
             for (int i = 0; i < __instance.transform.childCount; i++)
             {
-                // should adjust position bool, generally will always be true
-                bool adjustPos = true;
+                // should adjust position bool, generally will always be true for ultrawide
+                bool adjustPos = ratioMod != 1f;
                 Transform child = __instance.transform.GetChild(i);
 
+                if (!child.TryGetComponent<RectTransform>(out RectTransform rectTransform))
+                    continue;
+
                 // leave backgrounds, panels, etc. as-is (no resizing or repositioning)
-                if (DontTouch.Contains(child.gameObject.name))
+                if (DontTouch.Contains(child.name))
                     continue;
 
                 // dont reposition anything in esc menu
@@ -244,10 +401,10 @@ namespace FovUpdate
 
                 // lobby menu should only move the gradient
                 if (lobbyMenu)
-                    adjustPos = child.gameObject.name == "Gradient";
+                    adjustPos = child.name == "Gradient";
 
-                if (child.TryGetComponent<RectTransform>(out RectTransform rectTransform))
-                    AdjustToDifference(rectTransform, adjustPos);
+                // adjust scale and position
+                AdjustToDifference(rectTransform, adjustPos);
             }
         }
     }
@@ -371,12 +528,12 @@ namespace FovUpdate
             Tall
         }
 
-        public static ScreenStatus ScreenIs = ScreenStatus.Default;
+        internal static ScreenStatus ScreenIs = ScreenStatus.Default;
 
-        public static float previousAspectRatio;
-        public static float currentAspectRatio;
+        internal static float previousAspectRatio;
+        internal static float currentAspectRatio;
         public static readonly float defaultAspectRatio = 1.7777778f;
-        public static List<RectTransform> Rects = [];
+        internal static List<RectTransform> Rects = [];
         public static void Postfix(GraphicsManager __instance)
         {
             //config item is disabled, skip patch

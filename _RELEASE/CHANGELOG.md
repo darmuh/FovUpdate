@@ -1,8 +1,13 @@
-# Change Log
+﻿# Change Log
 
 All notable changes to this project will be documented in this file.
  
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
+
+## [0.4.1]
+- Updated Full UI fixes to make "best effort" fixes for "UltraTall" resolutions as well (16:10, 5∶4, 4:3, etc. )
+	- Added several optional patches specific to these types of resolutions that can be toggled similarly with the ``UI Adjustments`` setting
+- Slightly adjusted the math in the MenuSelectionBox patch
 
 ## [0.4.0]
 - Compiled on latest public build of the game, 0.4.4.3 (Cosmetic Update & More)

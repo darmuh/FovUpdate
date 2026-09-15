@@ -6,3 +6,5 @@ MenuHolder.instance
 
 HideAndDontSave => Menu Page
 MenuPage patch
+
+customize page top divider is hard coded to specific heights in RefreshScrollContent
